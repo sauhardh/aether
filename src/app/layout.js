@@ -4,6 +4,7 @@ import { fira_sans } from "./ui/fonts";
 import SessionWrapper from "./ui/components/SessionWrapper";
 import Navbar from "./ui/components/Navbar";
 import Footer from "./ui/components/Footer";
+import PageWrapper from './ui/components/PageWrapper.js'
 
 export const metadata = {
   title: {
@@ -19,8 +20,10 @@ export default function RootLayout({ children }) {
       <body className={`${fira_sans.className} antialiased`}>
         {/* <SessionWrapper> */}
           <Navbar />
-          <main className="min-h-screen pt-24 px-4 md:px-6 lg:px-8 bg-[size:20px_20px]">
-            {children}
+          <main className="min-h-screen bg-[size:20px_20px]">
+            <PageWrapper>
+              {children}
+            </PageWrapper>
           </main>
           <Footer />
         {/* </SessionWrapper> */}
