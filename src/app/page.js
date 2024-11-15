@@ -28,7 +28,7 @@ export default function Home() {
         <h2 className="text-3xl font-bold text-center mb-12">How It Works</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* first step */}
-          <div className="space-y-4 border rounded-lg border-gray-400">
+          <div className="space-y-4 rounded-lg shadow-lg">
             <div className="relative">
               <img
                 src="/1st_step.jpeg"
@@ -40,7 +40,7 @@ export default function Home() {
               </div>
             </div>
             <h3 className="text-xl font-semibold text-center">Connect Your Device</h3>
-            <div className="bg-white p-6 rounded-lg ">
+            <div className="bg-white p-6 rounded-lg shadow-sm">
               <p className="text-gray-700 leading-relaxed">
                 Begin by creating your Aether account and choosing your role - either as a
                 <span className="font-semibold text-blue-600"> Resource Provider </span>
@@ -69,7 +69,7 @@ export default function Home() {
             </div>
           </div>
           {/* second step */}
-          <div className="space-y-4 border rounded-lg border-gray-400">
+          <div className="space-y-4 rounded-lg shadow-lg">
             <div className="relative">
               <img
                 src="/2nd_step.jpeg"
@@ -115,12 +115,10 @@ export default function Home() {
     <p className="mt-3 text-gray-700">
       Compare multiple devices, check user ratings, and view performance metrics before making your selection.Once selected make payments for booked time slot. Our secure payment system ensures a safe transaction for both parties.
     </p>
-   
   </div>
-
           </div>
           {/* third step */}
-          <div className="space-y-4 border rounded-lg border-gray-400">
+          <div className="space-y-4 rounded-lg shadow-lg">
             <div className="relative">
               <img
                 src="/3rd_step.jpeg"
@@ -155,7 +153,6 @@ export default function Home() {
           <span className="font-medium">Secure Data Transfer:</span> End-to-end encryption ensures your work and data remain private
         </div>
       </li>
-     
     </ul>
     <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
       <div className="bg-green-50 p-4 rounded-lg">
@@ -167,12 +164,9 @@ export default function Home() {
         <p className="text-sm text-blue-800">
           <span className="font-semibold">For Providers:</span>
           Receive instant payments and ensure your device is protected from unauthorized access or illegal activities.
-
-           
         </p>
       </div>
     </div>
-   
   </div>
           </div>
         </div>
@@ -180,33 +174,33 @@ export default function Home() {
       {/* Features Section */}
       <div className="container mx-auto px-4 py-16">
         <h2 className="text-3xl font-bold text-center mb-12">Our features</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <div className="bg-white p-6 rounded-xl shadow-lg space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200 space-y-4">
             <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center">
               <Zap className="h-6 w-6 text-blue-600" />
             </div>
-            <h3 className="text-xl font-semibold">Lightning Fast</h3>
-            <p className="text-gray-600">
+            <h3 className="text-xl font-semibold text-center">Lightning Fast</h3>
+            <p className="text-gray-600 text-center">
               Experience minimal latency with our optimized connection protocols
             </p>
           </div>
 
-          <div className="bg-white p-6 rounded-xl shadow-lg space-y-4">
+          <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200 space-y-4">
             <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center">
               <Shield className="h-6 w-6 text-green-600" />
             </div>
-            <h3 className="text-xl font-semibold">Secure by Design</h3>
-            <p className="text-gray-600">
+            <h3 className="text-xl font-semibold text-center">Secure by Design</h3>
+            <p className="text-gray-600 text-center">
               End-to-end encryption and enterprise-grade security protocols
             </p>
           </div>
 
-          <div className="bg-white p-6 rounded-xl shadow-lg space-y-4">
+          <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200 space-y-4">
             <div className="h-12 w-12 bg-purple-100 rounded-full flex items-center justify-center">
               <Share2 className="h-6 w-6 text-purple-600" />
             </div>
-            <h3 className="text-xl font-semibold">Easy Sharing</h3>
-            <p className="text-gray-600">
+            <h3 className="text-xl font-semibold text-center">Easy Sharing</h3>
+            <p className="text-gray-600 text-center">
               Share resources across devices with just a few clicks
             </p>
           </div>
@@ -234,7 +228,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-
 
       {/* Join Our Community Section */}
       <div className="bg-gray-50 py-16">
@@ -267,4 +260,10 @@ export default function Home() {
                 <Instagram className="h-8 w-8 text-pink-600" />
               </div>
               <span className="text-sm text-gray-600 mt-2 block">Instagram</span>
-            </a>          </div>        </div>      </div>    </div>  );}
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
