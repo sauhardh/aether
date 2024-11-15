@@ -1,7 +1,7 @@
 
 import "./globals.css";
 import { fira_sans } from "./ui/fonts";
-import SessionWrapper from "./ui/components/SessionWrapper";
+// import SessionWrapper from "./ui/components/SessionWrapper";
 import Navbar from "./ui/components/Navbar";
 import Footer from "./ui/components/Footer";
 import PageWrapper from './ui/components/PageWrapper.js'

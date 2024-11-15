@@ -1,6 +1,21 @@
-import { ArrowRight, Monitor, Share2, Shield, Zap, Facebook, Instagram, Linkedin, MessageSquare } from 'lucide-react';
-import Link from 'next/link';
+import { ArrowRight, Share2, Zap, Shield, Facebook, Instagram, Linkedin, MessageSquare } from 'lucide-react';
+import { alfa_slab } from './ui/fonts';
+
 export default function Home() {
+
+  const how_it_works_data = [
+    { id: 1, title: "Connect Your Device", src: "/1ststep.jpeg" },
+    { id: 2, title: "Select Best Resources", src: "/2ndstep.jpeg" },
+    { id: 3, title: "Start Sharing", src: "/3rdstep.jpeg" }
+  ];
+
+  const features_data = [
+    { id: 1, title: "Lightning Fast", description: "Experience minimal latency with our optimized connection protocols", comp: Zap },
+    { id: 2, title: "Secure by Design", description: "End-to-end encryption and enterprise-grade security protocols", comp: Shield },
+    { id: 3, title: "Easy Sharing", description: "Share resources across devices with just a few clicks", comp: Share2 },
+  ]
+
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Hero Section */}
@@ -12,7 +27,7 @@ export default function Home() {
               Share desktop resources seamlessly across devices with enterprise-grade security
           </p>
           <div className="flex justify-center gap-4">
-            <button className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center">
+            <button className="px-8 py-4 bg-secondary text-white rounded-lg hover:bg-primary flex items-center">
               Get Started <ArrowRight className="ml-2 h-4 w-4" />
             </button>
             <button className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center">
@@ -232,10 +247,13 @@ export default function Home() {
       {/* Join Our Community Section */}
       <div className="bg-gray-50 py-16">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-8">Join Our Community</h2>
+          <div className='flex justify-center'>
+            <h2 className={`text-3xl font-bold text-center mb-8 ${alfa_slab.className}  text-primary border-b-[12px]  inline-block border-tertiary`}>Join Our Community</h2>
+          </div>
           <p className="text-gray-600 text-center mb-12 max-w-2xl mx-auto">
             Connect with us on social media to stay updated with the latest features, tips, and community highlights.
           </p>
+
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
             <a href="#" className="group flex flex-col items-center">
               <div className="h-16 w-16 bg-blue-100 rounded-full flex items-center justify-center group-hover:bg-blue-200 transition-colors">
@@ -262,8 +280,10 @@ export default function Home() {
               <span className="text-sm text-gray-600 mt-2 block">Instagram</span>
             </a>
           </div>
+
+
         </div>
       </div>
-    </div>
+    </div >
   );
 }
