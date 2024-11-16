@@ -1,9 +1,15 @@
 
+// "use client"
+// import { SessionProvider } from "next-auth/react"
 
-// export default function SessionWrapper({ children, session }) {
+// export default function RootLayout({ children }) {
 //   return (
-//     <SessionProvider session={session}>
-//       {children}
-//     </SessionProvider>
+//     <html>
+//       <body>
+//         <SessionProvider>
+//           {children}
+//         </SessionProvider>
+//       </body>
+//     </html>
 //   )
 // }

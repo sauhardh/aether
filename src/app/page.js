@@ -19,7 +19,8 @@ export default function Home() {
                 <Link href="/about" className="text-white">Learn More</Link>
               </button>
               <button className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center">
-                Get Started <ArrowRight className="ml-2 h-4 w-4" />
+              <Link href="/login" className="text-white">Get Started</Link>
+              <ArrowRight className="ml-2 h-4 w-4" />
               </button>
               
             </div>
