@@ -7,7 +7,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Hero Section */}
-      <div className="w-full h-[70vh] bg-cover bg-center" style={{ backgroundImage: 'url(/bg_landing.webp)' }}>
+      <div className="w-full h-[85vh] bg-cover bg-center" style={{ backgroundImage: 'url(/bg_landing.webp)' }}>
         <div className="flex items-center justify-center h-full w-full">
           <div className="text-center space-y-8 text-white">
             <h1 className="text-5xl font-bold">Welcome to Aether</h1>
