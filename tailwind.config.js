@@ -1,3 +1,4 @@
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
@@ -14,7 +15,11 @@ module.exports = {
         secondary: "#006A67",
         tertiary: "#ffc832"
       },
+      boxShadow: {
+        '3xl': '0 35px 70px -15px rgba(0, 0, 0, 0.25)', // Customize the shadow values
+      },
     },
   },
   plugins: [],
 };
+
