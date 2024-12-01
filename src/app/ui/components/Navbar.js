@@ -22,7 +22,6 @@ const Navbar = () => {
   //   };
   // }, [isHomePage]);
 
-
   return (
     <nav className="
     fixed  w-full z-50  
