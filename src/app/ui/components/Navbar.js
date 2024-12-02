@@ -43,17 +43,13 @@ const Navbar = () => {
       ) : (
         <div className='flex gap-4 mx-8'>
           <button
-            // className={`font-medium text-xl px-4 py-2 ${isHomePage && !isScrolled ? 'bg-[#368985] hover:bg-[#3182ce] text-[#f4f4f4]' : ''} rounded-md hover:bg-[#3182ce]`}
-            className={`font-medium text-xl px-4 py-2  rounded-md hover:underline`}
+            className="font-medium text-xl px-4 py-2  hover:border-b-2 hover:border-white border-b-2 border-transparent transition-all duration-200"
             onClick={() => router.push('/signup')}
           >
             SignUp
           </button>
           <button
-            // className={`font-medium text-xl px-4 py-2 ${isHomePage && !isScrolled ? 'bg-[#318883] hover:bg-[#3182ce] text-[#f4f4f4]' : ''} rounded-md hover:bg-[#3182ce]`}
-            className={`font-medium text-xl px-4 py-2  rounded-md hover:underline`}
-
-
+            className="font-medium text-xl px-4 py-2 hover:border-b-2 hover:border-white border-b-2 border-transparent transition-all duration-200"
             onClick={() => router.push('/login')}
           >
             Login
@@ -63,5 +59,4 @@ const Navbar = () => {
     </nav>
   );
 }
-
 export default Navbar;
