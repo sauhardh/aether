@@ -1,11 +1,15 @@
 "use client"
 import React, { useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useSession, signIn, signOut } from 'next-auth/react';
+import Logout from './Logout';
 
 const Navbar = () => {
+  const { data: session } = useSession();
   const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
   const isHomePage = pathname === '/';
+  const router = useRouter();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -33,7 +37,29 @@ const Navbar = () => {
 
   return (
     <nav className={navbarClasses}>
-      This is Navbar
+      <button onClick={() => router.push('/')}>Aether</button>
+      {session ? (
+        <Logout />
+      ) : (
+        <div className='flex gap-4 mx-8'>
+          <button
+            // className={`font-medium text-xl px-4 py-2 ${isHomePage && !isScrolled ? 'bg-[#368985] hover:bg-[#3182ce] text-[#f4f4f4]' : ''} rounded-md hover:bg-[#3182ce]`}
+            className={`font-medium text-xl px-4 py-2  rounded-md hover:underline`}
+            onClick={() => router.push('/signup')}
+          >
+            SignUp
+          </button>
+          <button
+            // className={`font-medium text-xl px-4 py-2 ${isHomePage && !isScrolled ? 'bg-[#318883] hover:bg-[#3182ce] text-[#f4f4f4]' : ''} rounded-md hover:bg-[#3182ce]`}
+            className={`font-medium text-xl px-4 py-2  rounded-md hover:underline`}
+
+
+            onClick={() => router.push('/login')}
+          >
+            Login
+          </button>
+        </div>
+      )}
     </nav>
   );
 }

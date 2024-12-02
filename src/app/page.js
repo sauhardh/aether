@@ -1,9 +1,18 @@
-
+"use client"
 
 import { ArrowRight, Facebook, Zap, Shield, Share2, Instagram, Linkedin, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
-
+import { useSession } from 'next-auth/react';
 export default function Home() {
+
+
+  const { data: session } = useSession();
+  if(session){
+    console.log(" There is session: ", session.user?.email)
+  }
+  else(
+    console.log("No session")
+  )
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Hero Section */}

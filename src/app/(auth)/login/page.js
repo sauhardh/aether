@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState,useEffect } from 'react'
 import { signIn, useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { FaEye, FaEyeSlash } from 'react-icons/fa'
@@ -18,8 +18,16 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false)
 
   // Redirect if already authenticated
+  useEffect(() => {
+    if (session) {
+      router.push('/dashboard')
+      console.log("There is session")
+      console.log("session", session.user?.email)
+    }
+  }, [session, router])
+
+  // Early return if session exists
   if (session) {
-    router.push('/dashboard')
     return null
   }
 
