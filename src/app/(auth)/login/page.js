@@ -1,8 +1,8 @@
 'use client'
-import { useState,useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { signIn, useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import AuthForm from '@/app/ui/components/form/AuthForm.jsx'
+import AuthForm from '@/components/ui/form/AuthForm.jsx'
 import "@/app/globals.css"
 
 const Login = () => {
@@ -15,7 +15,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [errors, setErrors] = useState({})
   const [isLoading, setIsLoading] = useState(false)
-  useEffect(() => { 
+  useEffect(() => {
     document.title = "Login • Aether"
   }, [])
   // Redirect if already authenticated

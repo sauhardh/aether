@@ -1,10 +1,10 @@
 
 import "./globals.css";
-import { fira_sans } from "./ui/fonts";
-import SessionWrapper from "./ui/components/SessionWrapper";
-import Navbar from "./ui/components/Navbar";
-import Footer from "./ui/components/Footer";
-import PageWrapper from './ui/components/PageWrapper.js'
+import { fira_sans } from "../components/fonts";
+import SessionWrapper from "../components/ui/SessionWrapper";
+import Navbar from "../components/ui/Navbar";
+import Footer from "../components/ui/Footer";
+import PageWrapper from '../components/ui/PageWrapper.js'
 
 export const metadata = {
   title: {

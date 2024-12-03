@@ -4,8 +4,8 @@ import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 import { FaEye, FaEyeSlash } from 'react-icons/fa'
 import { useRouter } from 'next/navigation'
-import InputBox from '@/app/ui/components/form/Input'
-import AuthForm from '@/app/ui/components/form/AuthForm'
+import InputBox from '@/components/ui/form/Input'
+import AuthForm from '@/components/ui/form/AuthForm'
 import "@/app/globals.css"
 
 const Signup = () => {

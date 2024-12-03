@@ -4,7 +4,7 @@
 import { ArrowRight, Facebook, Zap, Shield, Share2, Instagram, Linkedin, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
-import { alfa_slab } from './ui/fonts';
+import { alfa_slab } from '../components/fonts';
 export default function Home() {
 
   const { data: session } = useSession();
