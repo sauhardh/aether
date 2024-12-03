@@ -9,7 +9,7 @@ import PageWrapper from './ui/components/PageWrapper.js'
 export const metadata = {
   title: {
     template: "%s | aether",
-    default: "aether"
+    default: "Aether"
   },
   description: "Remote Desktop Sharing App",
 };

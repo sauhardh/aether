@@ -37,9 +37,35 @@ const Navbar = () => {
 
   return (
     <nav className={navbarClasses}>
-      <button onClick={() => router.push('/')}>Aether</button>
+      <button onClick={() => router.push('/')} className='font-medium text-xl px-4 py-2'>Aether</button>
       {session ? (
-        <Logout />
+        <div className='flex gap-4 mx-8'>
+          <button
+            className={`font-medium text-xl px-4 py-2 ${pathname === '/dashboard' ? 'border-b-2 border-white' : 'hover:border-b-2 hover:border-white border-b-2 border-transparent'} transition-all duration-200`}
+            onClick={() => router.push('/home')}
+          >
+            Home
+          </button>
+          <button
+            className={`font-medium text-xl px-4 py-2 ${pathname === '/dashboard' ? 'border-b-2 border-white' : 'hover:border-b-2 hover:border-white border-b-2 border-transparent'} transition-all duration-200`}
+            onClick={() => router.push('/dashboard')}
+          >
+            Dashboard
+          </button>
+            <button
+            className={`font-medium text-xl px-4 py-2 ${pathname === '/profile' ? 'border-b-2 border-white' : 'hover:border-b-2 hover:border-white border-b-2 border-transparent'} transition-all duration-200`}
+            onClick={() => router.push('/')}
+            >
+            Profile
+            </button>
+            <button
+            className={`font-medium text-xl px-4 py-2 ${pathname === '/settings' ? 'border-b-2 border-white' : 'hover:border-b-2 hover:border-white border-b-2 border-transparent'} transition-all duration-200`}
+            onClick={() => router.push('/')}
+            >
+            Settings
+            </button>
+          <Logout />
+        </div>
       ) : (
         <div className='flex gap-4 mx-8'>
           <button

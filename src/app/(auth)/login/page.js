@@ -16,7 +16,9 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [errors, setErrors] = useState({})
   const [isLoading, setIsLoading] = useState(false)
-
+  useEffect(() => { 
+    document.title = "Login • Aether"
+  }, [])
   // Redirect if already authenticated
   useEffect(() => {
     if (session) {
