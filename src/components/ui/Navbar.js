@@ -3,75 +3,62 @@ import React, { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSession, signIn, signOut } from 'next-auth/react';
 import Logout from './Logout';
+import Button from '../button';
 
 const Navbar = () => {
   const { data: session } = useSession();
-  const [isScrolled, setIsScrolled] = useState(false);
-  const pathname = usePathname();
-  const isHomePage = pathname === '/';
   const router = useRouter();
-
-  //   if (isHomePage) {
-  //     window.addEventListener('scroll', handleScroll);
-  //   }
-
-  //   return () => {
-  //     window.removeEventListener('scroll', handleScroll);
-  //   };
-  // }, [isHomePage]);
 
   return (
     <nav
-      className=" fixed  w-full z-50  
-    bg-slate-950
-    text-white flex flex-col md:flex-row justify-between items-center 
-    px-4 py-2 md:py-0 h-auto md:h-[8vh] space-y-2 md:space-y-0"
+      className="w-full z-50  overflow-clip bg-gray-100
+    text-[#2a3439] flex flex-col md:flex-row justify-between items-center 
+    p-4 md:py-0 h-auto md:h-[8vh] space-y-2 md:space-y-0"
     >
-      <button onClick={() => router.push('/')} className='font-medium text-xl px-4 py-2'>Aether</button>
+      <button
+        onClick={() => router.push('/')}
+        className='font-bold text-primary  text-xl px-4 py-1 cursor-pointer hover:border-b-[6px] transition-all duration-100  border-b-primary hover:py-0'>
+        aether
+      </button>
+
       {session ? (
         <div className='flex gap-4 mx-8'>
-          <button
-            className={`font-medium text-xl px-4 py-2 ${pathname === '/dashboard' ? 'border-b-2 border-white' : 'hover:border-b-2 hover:border-white border-b-2 border-transparent'} transition-all duration-200`}
-            onClick={() => router.push('/home')}
-          >
-            Home
-          </button>
-          <button
-            className={`font-medium text-xl px-4 py-2 ${pathname === '/dashboard' ? 'border-b-2 border-white' : 'hover:border-b-2 hover:border-white border-b-2 border-transparent'} transition-all duration-200`}
-            onClick={() => router.push('/dashboard')}
-          >
-            Dashboard
-          </button>
-          <button
-            className={`font-medium text-xl px-4 py-2 ${pathname === '/profile' ? 'border-b-2 border-white' : 'hover:border-b-2 hover:border-white border-b-2 border-transparent'} transition-all duration-200`}
-            onClick={() => router.push('/')}
-          >
-            Profile
-          </button>
-          <button
-            className={`font-medium text-xl px-4 py-2 ${pathname === '/settings' ? 'border-b-2 border-white' : 'hover:border-b-2 hover:border-white border-b-2 border-transparent'} transition-all duration-200`}
-            onClick={() => router.push('/')}
-          >
-            Settings
-          </button>
-          <Logout />
+
+          <Button
+            placeholder="Dashboard"
+            direct_to="/dashboard"
+            path_name="/dashboard"
+          />
+
+          <Button
+            placeholder="Profile"
+            direct_to="/profile"
+            path_name="/profile"
+          />
+
+          <Button
+            placeholder="About us"
+            direct_to="/about"
+            path_name="/about"
+          />
+
+          <Logout img_src={session?.user?.image} />
         </div>
       ) : (
         <div className='flex gap-4 mx-8'>
-          <button
-            className={`font-medium text-xl px-4 py-2 ${pathname === '/signup' ? 'border-b-2 border-white' : 'hover:border-b-2 hover:border-white border-b-2 border-transparent'} transition-all duration-200`}
-            onClick={() => router.push('/signup')}
-          >
-            SignUp
-          </button>
-          <button
-            className={`font-medium text-xl px-4 py-2 ${pathname === '/login' ? 'border-b-2 border-white' : 'hover:border-b-2 hover:border-white border-b-2 border-transparent'} transition-all duration-200`}
-            onClick={() => router.push('/login')}
-          >
-            Login
-          </button>
+          <Button
+            placeholder="SignUp"
+            direct_to="/signup"
+            path_name="/signup"
+          />
+          <Button
+            placeholder="Login"
+            direct_to="/login"
+            path_name="/login"
+          />
         </div>
-      )}
+      )
+      }
     </nav>
   );
 }

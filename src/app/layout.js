@@ -17,7 +17,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${fira_sans.className} antialiased`}>
+      <body className={`${fira_sans.className} antialiased bg-gradient-to-b from-gray-100 to-white`}>
         <SessionWrapper>
           <Navbar />
           <main className="min-h-screen bg-[size:20px_20px]">

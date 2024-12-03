@@ -34,7 +34,7 @@ export default function Home() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-gray-100 to-white">
       {/* Hero Section */}
       <div className="container mx-auto px-4 py-16">
 
@@ -44,15 +44,23 @@ export default function Home() {
             Share desktop resources seamlessly across devices with enterprise-grade security
           </p>
           <div className="flex justify-center gap-4">
-            <Link href={"/login"} className="px-8 py-4 bg-secondary text-white rounded-lg hover:bg-primary flex items-center">
-              Get Started <ArrowRight className="ml-2 h-4 w-4" />
+            <Link
+              href={"/login"}
+              className="px-8 py-4 bg-secondary text-white rounded-lg hover:bg-primary flex items-center"
+            >
+              Get Started
+              <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
-            <Link href={"/about"} className="px-8 py-4 border border-secondary rounded-lg hover:primary hover:bg-primary hover:text-white">
+
+            <Link
+              href={"/about"}
+              className="px-8 py-4 border border-secondary rounded-lg hover:primary hover:bg-primary hover:text-white">
               Learn More
             </Link>
           </div>
         </div>
       </div>
+
       {/* how it works section*/}
       <div className="container mx-auto px-4 py-16 flex flex-col justify-center items-center bg-secondary">
 

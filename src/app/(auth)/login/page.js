@@ -15,22 +15,25 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [errors, setErrors] = useState({})
   const [isLoading, setIsLoading] = useState(false)
-  useEffect(() => {
-    document.title = "Login • Aether"
-  }, [])
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (session) {
-      router.push('/dashboard')
-      console.log("There is session")
-      console.log("session", session.user?.email)
-    }
-  }, [session, router])
 
   // Early return if session exists
   if (session) {
-    return null
+    router.push("/dashboard")
+    console.log("session is ", session)
   }
+
+  useEffect(() => {
+    document.title = "Login • Aether"
+  }, [])
+
+  // // Redirect if already authenticated
+  // useEffect(() => {
+  //   if (session) {
+  //     router.push('/dashboard')
+  //     console.log("There is session", session)
+  //     console.log("session", session.user?.email)
+  //   }
+  // }, [session, router])
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -72,7 +75,6 @@ const Login = () => {
         email: formData.email,
         password: formData.password,
       })
-
       if (result?.error) {
         setErrors({ auth: 'Invalid email or password' })
       } else {
@@ -84,8 +86,6 @@ const Login = () => {
       setIsLoading(false)
     }
   }
-
-
 
   return (
     <  AuthForm
