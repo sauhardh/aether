@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 
 const Dashboard = ({ user }) => {
     return (
-        <div>
+        <div className='min-h-screen'>
             <h1>Welcome {user.name}! Have a good day!</h1>
         </div>
     );
