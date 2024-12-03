@@ -24,9 +24,7 @@ const DashboardPage = () => {
     // }
 
     return (
-        // <div className='min-h-screen'>
         <Dashboard user={session.user} />
-        // </div>
     );
 };
 

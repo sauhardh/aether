@@ -26,10 +26,6 @@ const Login = () => {
   // Redirect if already authenticated
   useEffect(() => {
     if (session) {
-
-
-      // router.push('/dashboard')
-
       if (pathname == "/login") {
         router.push("/")
       }
