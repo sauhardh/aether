@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 import { FaEye, FaEyeSlash } from 'react-icons/fa'
@@ -9,6 +9,10 @@ import AuthForm from '@/app/ui/components/form/AuthForm'
 import "@/app/globals.css"
 
 const Signup = () => {
+
+  useEffect(() => {
+    document.title = 'SignUp • Aether'
+  }, [])
   const router = useRouter()
   const [formData, setFormData] = useState({
     firstName: '',
@@ -102,5 +106,4 @@ const Signup = () => {
 
   )
 }
-
-export default Signup 
+export default Signup

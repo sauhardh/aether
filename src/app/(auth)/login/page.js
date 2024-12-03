@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState,useEffect } from 'react'
 import { signIn, useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import AuthForm from '@/app/ui/components/form/AuthForm.jsx'
@@ -15,10 +15,20 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [errors, setErrors] = useState({})
   const [isLoading, setIsLoading] = useState(false)
-
+  useEffect(() => { 
+    document.title = "Login • Aether"
+  }, [])
   // Redirect if already authenticated
+  useEffect(() => {
+    if (session) {
+      router.push('/dashboard')
+      console.log("There is session")
+      console.log("session", session.user?.email)
+    }
+  }, [session, router])
+
+  // Early return if session exists
   if (session) {
-    router.push('/dashboard')
     return null
   }
 

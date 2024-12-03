@@ -1,8 +1,19 @@
-import { ArrowRight, Share2, Zap, Shield, Facebook, Instagram, Linkedin, MessageSquare } from 'lucide-react'
-import { alfa_slab } from './ui/fonts'
-import Link from 'next/link'
 
+"use client"
+
+import { ArrowRight, Facebook, Zap, Shield, Share2, Instagram, Linkedin, MessageSquare } from 'lucide-react';
+import Link from 'next/link';
+import { useSession } from 'next-auth/react';
+import { alfa_slab } from './ui/fonts';
 export default function Home() {
+
+  const { data: session } = useSession();
+  if (session) {
+    console.log(" There is session: ", session.user?.email)
+  }
+  else {
+    console.log("No session")
+  }
 
   const how_it_works_data = [
     { id: 1, title: "Connect Your Device", src: "/1ststep.jpeg" },

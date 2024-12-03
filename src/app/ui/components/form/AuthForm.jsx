@@ -2,6 +2,7 @@ import React from 'react'
 import InputBox from './Input'
 import { FaEye, FaEyeSlash } from 'react-icons/fa'
 import Link from 'next/link'
+import { signIn } from 'next-auth/react'
 
 function AuthForm({ isSignUp = false, handleSubmit, handleChange, errors, showPassword, isLoading, setShowPassword, formData }) {
 

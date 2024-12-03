@@ -1,17 +1,15 @@
 "use client"
 import React, { useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useSession, signIn, signOut } from 'next-auth/react';
+import Logout from './Logout';
 
 const Navbar = () => {
+  const { data: session } = useSession();
   const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
   const isHomePage = pathname === '/';
-  // useEffect(() => {
-  //   const handleScroll = () => {
-  //     // Calculate when we've scrolled past 70vh (hero section height)
-  //     const heroHeight = window.innerHeight * 0.7;
-  //     setIsScrolled(window.scrollY >= heroHeight);
-  //   };
+  const router = useRouter();
 
   //   if (isHomePage) {
   //     window.addEventListener('scroll', handleScroll);
@@ -23,15 +21,58 @@ const Navbar = () => {
   // }, [isHomePage]);
 
   return (
-    <nav className="
-    fixed  w-full z-50  
+    <nav
+      className=" fixed  w-full z-50  
     bg-slate-950
     text-white flex flex-col md:flex-row justify-between items-center 
-    px-4 py-2 md:py-0 h-auto md:h-[8vh] space-y-2 md:space-y-0
-  ">
-      This is Navbar
-    </nav >
+    px-4 py-2 md:py-0 h-auto md:h-[8vh] space-y-2 md:space-y-0"
+    >
+      <button onClick={() => router.push('/')} className='font-medium text-xl px-4 py-2'>Aether</button>
+      {session ? (
+        <div className='flex gap-4 mx-8'>
+          <button
+            className={`font-medium text-xl px-4 py-2 ${pathname === '/dashboard' ? 'border-b-2 border-white' : 'hover:border-b-2 hover:border-white border-b-2 border-transparent'} transition-all duration-200`}
+            onClick={() => router.push('/home')}
+          >
+            Home
+          </button>
+          <button
+            className={`font-medium text-xl px-4 py-2 ${pathname === '/dashboard' ? 'border-b-2 border-white' : 'hover:border-b-2 hover:border-white border-b-2 border-transparent'} transition-all duration-200`}
+            onClick={() => router.push('/dashboard')}
+          >
+            Dashboard
+          </button>
+          <button
+            className={`font-medium text-xl px-4 py-2 ${pathname === '/profile' ? 'border-b-2 border-white' : 'hover:border-b-2 hover:border-white border-b-2 border-transparent'} transition-all duration-200`}
+            onClick={() => router.push('/')}
+          >
+            Profile
+          </button>
+          <button
+            className={`font-medium text-xl px-4 py-2 ${pathname === '/settings' ? 'border-b-2 border-white' : 'hover:border-b-2 hover:border-white border-b-2 border-transparent'} transition-all duration-200`}
+            onClick={() => router.push('/')}
+          >
+            Settings
+          </button>
+          <Logout />
+        </div>
+      ) : (
+        <div className='flex gap-4 mx-8'>
+          <button
+            className={`font-medium text-xl px-4 py-2 ${pathname === '/signup' ? 'border-b-2 border-white' : 'hover:border-b-2 hover:border-white border-b-2 border-transparent'} transition-all duration-200`}
+            onClick={() => router.push('/signup')}
+          >
+            SignUp
+          </button>
+          <button
+            className={`font-medium text-xl px-4 py-2 ${pathname === '/login' ? 'border-b-2 border-white' : 'hover:border-b-2 hover:border-white border-b-2 border-transparent'} transition-all duration-200`}
+            onClick={() => router.push('/login')}
+          >
+            Login
+          </button>
+        </div>
+      )}
+    </nav>
   );
 }
-
 export default Navbar;
