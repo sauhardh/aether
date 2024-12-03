@@ -5,7 +5,10 @@ import { ArrowRight, Facebook, Zap, Shield, Share2, Instagram, Linkedin, Message
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { alfa_slab } from '../components/fonts';
+import { useRouter } from 'next/navigation';
 export default function Home() {
+
+  const router = useRouter();
 
   const { data: session } = useSession();
   if (session) {
@@ -33,8 +36,17 @@ export default function Home() {
     { id: 3, title: "24/7", description: "Active Support" }
   ]
 
+  const handleGetStarted = (e) => {
+    e.preventDefault();
+    if (session) {
+      router.push("/dashboard")
+    } else {
+      router.push("/login")
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-100 to-white">
+    <div className="bg-gradient-to-b from-gray-100 to-white">
       {/* Hero Section */}
       <div className="container mx-auto px-4 py-16">
 
@@ -44,16 +56,16 @@ export default function Home() {
             Share desktop resources seamlessly across devices with enterprise-grade security
           </p>
           <div className="flex justify-center gap-4">
-            <Link
-              href={"/login"}
+            <button
+              onClick={handleGetStarted}
               className="px-8 py-4 bg-secondary text-white rounded-lg hover:bg-primary flex items-center"
             >
               Get Started
               <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
+            </button>
 
             <Link
-              href={"/about"}
+              href={"#learn_more"}
               className="px-8 py-4 border border-secondary rounded-lg hover:primary hover:bg-primary hover:text-white">
               Learn More
             </Link>
@@ -62,7 +74,7 @@ export default function Home() {
       </div>
 
       {/* how it works section*/}
-      <div className="container mx-auto px-4 py-16 flex flex-col justify-center items-center bg-secondary">
+      <div id="learn_more" className="container mx-auto px-4 py-16 flex flex-col justify-center items-center bg-secondary">
 
         <h2 className={`text-3xl font-bold text-center mb-12 ${alfa_slab.className} text-white border-b-[12px]  inline-block border-tertiary `}>How It Works</h2>
         <div className="grid grid-cols-1 md:grid-cols-3  gap-x-20">

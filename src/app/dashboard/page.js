@@ -10,7 +10,7 @@ const DashboardPage = () => {
     const { data: session, status } = useSession();
 
     useEffect(() => {
-        if (status === "unauthenticated") {
+        if (!session || status === "unauthenticated") {
             router.push('/login');
         }
     }, [status, router]);
@@ -19,14 +19,12 @@ const DashboardPage = () => {
         return <div>Loading...</div>;
     }
 
-    if (!session?.user) {
-        return null;
-    }
+    // if (!session?.user) {
+    //     return null;
+    // }
 
     return (
-        <div>
-            <Dashboard user={session.user} />
-        </div>
+        <Dashboard user={session.user} />
     );
 };
 

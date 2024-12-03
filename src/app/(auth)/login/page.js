@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { signIn, useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import AuthForm from '@/components/ui/form/AuthForm.jsx'
 import "@/app/globals.css"
 
@@ -15,25 +16,22 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [errors, setErrors] = useState({})
   const [isLoading, setIsLoading] = useState(false)
+  const pathname = usePathname();
 
-  // Early return if session exists
-  if (session) {
-    router.push("/dashboard")
-    console.log("session is ", session)
-  }
 
   useEffect(() => {
     document.title = "Login • Aether"
   }, [])
 
-  // // Redirect if already authenticated
-  // useEffect(() => {
-  //   if (session) {
-  //     router.push('/dashboard')
-  //     console.log("There is session", session)
-  //     console.log("session", session.user?.email)
-  //   }
-  // }, [session, router])
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (session) {
+      if (pathname == "/login") {
+        router.push("/")
+      }
+      console.log("There is session", session)
+    }
+  }, [session, router])
 
   const handleChange = (e) => {
     const { name, value } = e.target

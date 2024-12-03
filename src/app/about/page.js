@@ -5,7 +5,7 @@ import "@/app/globals.css"
 
 const page = () => {
   return (
-    <div className='text-black min-h-screen text-center'>
+    <div className='text-black  text-center'>
       <h1>
         Hello This is about page
       </h1>

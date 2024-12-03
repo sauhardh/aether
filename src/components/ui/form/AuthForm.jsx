@@ -18,7 +18,7 @@ function AuthForm({ isSignUp = false, handleSubmit, handleChange, errors, showPa
     }
 
     return (
-        <div className="bg-[#ffffff] max-h-screen mb-5">
+        <div className="bg-[#ffffff]  min-h-screen w-full pt-10 m-0">
             <div className="flex justify-center items-center">
                 <div className="bg-[#f7f6f6] rounded-2xl shadow-2xl flex space-x-20 p-14 px-20">
 
