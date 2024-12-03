@@ -6,7 +6,7 @@ const PageWrapper = ({children}) => {
  const pathname = usePathname()
   const isLandingPage = pathname === '/'
   return (
-    <div className={`${isLandingPage ? '' : 'pt-24 px-4 md:px-6 lg:px-8'}`}>
+    <div className={`${isLandingPage ? '' : 'pt-[9.45vh] px-4 md:px-6 lg:px-8'}`}>
       {children}
     </div>
   )

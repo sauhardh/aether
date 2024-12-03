@@ -216,13 +216,14 @@ const Login = () => {
               </button>
             </div>
 
-            <p className="text-center mt-8 text-lg">
+          
+          </div>
+          <p className="text-center mt-8 text-lg">
               New to Aether?{' '}
               <Link href="/signup" className="text-blue-600 font-medium hover:underline">
                 Join now
               </Link>
             </p>
-          </div>
         </div>
       </div>
     </div>
