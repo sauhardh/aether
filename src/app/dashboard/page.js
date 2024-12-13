@@ -119,6 +119,7 @@ const DashboardPage = () => {
 
 
 
+
     return status == "loading" ? <div>Loading...</div> : (
         <div>
             {systemInfo.length <= 0 && <p className='italic text-gray-500 w-full bg-tertiary bg-opacity-30 text-center mt-5 p-2 shadow-sm'>No Device is online right now. <b>Please come back later!</b></p>}
