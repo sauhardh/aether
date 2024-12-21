@@ -16,10 +16,10 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${fira_sans.className} antialiased bg-gradient-to-b from-gray-100 to-white w-full min-h-screen p-0 m-0 box-border`}>
+      <body className={`${fira_sans.className} antialiased  w-full p-0 m-0  min-h-[100%] relative`}>
         <SessionWrapper>
           <Navbar />
-          <main className="w-full min-h-screen">
+          <main className="flex-1 w-full bg-gradient-to-b  from-gray-100 to-white">
             {children}
           </main>
           <Footer />
