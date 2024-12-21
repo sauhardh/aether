@@ -1,9 +1,11 @@
 "use client"
 import React, { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
+import { useRouter, usePathname } from 'next/navigation';
 import Card from '@/components/ui/Card';
 import { Clock, MapPin } from 'lucide-react';
 import { FaMicrochip } from "react-icons/fa6";
+import path from 'path';
 
 
 const DashboardPage = () => {
@@ -12,9 +14,11 @@ const DashboardPage = () => {
     const [clickedMoreInfo, setClickedMoreInfo] = useState(false);
     const [selectionMethod, setSelectionMethod] = useState("Lowest Rate");
     const [selectedInfo, setSelectedInfo] = useState(null);
-
+    const router = useRouter();
+    const pathname = usePathname();
 
     useEffect(() => {
+        console.log("sesison", session)
         if (status == "authenticated") {
             handleSelection();
         }
@@ -122,7 +126,7 @@ const DashboardPage = () => {
 
     return status == "loading" ? <div>Loading...</div> : (
         <div>
-            {systemInfo.length <= 0 && <p className='italic text-gray-500 w-full bg-tertiary bg-opacity-30 text-center mt-5 p-2 shadow-sm'>No Device is online right now. <b>Please come back later!</b></p>}
+            {systemInfo.length <= 0 && <p className='italic text-gray-500 w-full  bg-tertiary bg-opacity-30 text-center mt-5 p-2 shadow-sm'>No Device is online right now. <b>Please come back later!</b></p>}
 
 
             <div className='p-10'>
@@ -135,7 +139,7 @@ const DashboardPage = () => {
                     <div className='flex text-primary gap-5 justify-around'>
 
                         {/* Rent */}
-                        <div className=' space-y-10   box-border w-full bg-white p-20 rounded-lg shadow-md '>
+                        <div className=' space-y-10   box-border w-full bg-white p-20 rounded-lg shadow-md'>
                             <div className=' gap-1 text-green-700 text-xl'>
                                 <span className='flex'>
                                     <p className=' font-bold text-5xl'>{selectedInfo.rent}</p>
@@ -146,7 +150,15 @@ const DashboardPage = () => {
                                     <b className='text-primary text-sm '>to rent the device</b>
                                 </span>
                             </div>
-                            <button className='border-2 py-3 px-9 rounded-lg font-medium bg-green-700 text-white hover:scale-[0.99]'>Rent now</button>
+                            <button
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    router.push(`${pathname}/playground/${session.user.name}`)
+                                }}
+                                className='border-2 py-3 px-9 rounded-lg font-medium bg-green-700 text-white hover:scale-[0.99]'
+                            >
+                                Rent now
+                            </button>
                         </div>
 
 

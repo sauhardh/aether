@@ -9,6 +9,7 @@ const page = () => {
             <h1>
                 Hello This is profile page
             </h1>
+
         </div>
     )
 }
