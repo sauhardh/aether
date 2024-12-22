@@ -38,17 +38,22 @@ export default function Home() {
 
   const handleGetStarted = (e) => {
     e.preventDefault();
-    if (session) {
-      router.push("/dashboard")
-    } else {
+    if (!session) {
       router.push("/login")
     }
+    router.push("/lobby")
   }
+
+
 
   return (
     <div className="bg-gradient-to-b from-gray-100 to-white">
+
+
+
+
       {/* Hero Section */}
-      <div className="container mx-auto px-4 py-16">
+      <div className="container mx-auto px-4 py-16 relative">
 
         <div className="text-center space-y-8 pt-10">
           <h1 className={`text-6xl font-bold text-primary  ${alfa_slab.className} `}>Welcome to Aether</h1>
