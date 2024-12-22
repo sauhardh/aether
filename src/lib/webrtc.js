@@ -39,12 +39,8 @@ async function WebRTC() {
         videoPlayer.removeEventListener("click", VideoPlayer_HandleClick)
     });
 
-    peerConnection.addEventListener("icegatheringstatechange", () => {
-        console.log("ICE_GATHERING_STATE(local)", peerConnection.iceGatheringState);
-    });
-
     peerConnection.addEventListener("iceconnectionstatechange", () => {
-        console.log("ICE_CONNECTION_STATE(remote)", peerConnection.iceConnectionState);
+        console.log("ICE_CONNECTION_STATE", peerConnection.iceConnectionState);
     });
 
     peerConnection.addEventListener("track", (event) => {
