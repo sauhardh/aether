@@ -5,11 +5,16 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
 import { ArrowRight } from "lucide-react";
+import { useEffect } from "react";
+import { GET_identification, POST_locallandlord } from "@/lib/apiClient";
 
 export default function Lobby() {
     const router = useRouter();
     const [landlordClicked, setLandlordClicked] = useState(false);
     const [port, setPort] = useState(6969);
+    const [token, setToken] = useState(null);
+    const [messageToClient, setmessageToClient] = useState("");
+    const [submissionClicked, setSubmissionClicked] = useState(false);
 
     function handleLandlordClick() {
         console.log("Clicked on landlord");
@@ -18,20 +23,56 @@ export default function Lobby() {
 
     function handleBack() {
         setLandlordClicked(false);
-        setPort("");
     }
+    //
+    ////JUST FOR TESTING
+    //
+    // useEffect(() => {
+    //     (async () => {
+    //         // Create WebSocket connection.
+    //         const socket = new WebSocket("http://localhost:7878/ping_pong?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJqb2huX2RvZSIsImlhdCI6MTczNTEyMTcxNCwiZXhwIjoxNzM1MTIyMzE0fQ.BJURt0cxExL4VyBCTnrCnMHQEKxGIPsfJR4dkhRRJho");
 
-    function handlePortSubmission(e) {
+    //         socket.onopen = () => {
+    //             console.log("Websocket initialized")
+    //             socket.send(JSON.stringify({ type: "ping" }))
+    //         }
+
+    //         socket.onmessage = async (event) => {
+    //             const data = JSON.parse(event.data)
+    //             console.log("Data is ", data)
+    //             switch (data.type) {
+    //                 case "pong":
+    //                     socket.send(JSON.stringify({ type: "ping" }))
+    //                     break
+    //                 case _:
+    //                     console.log("got something")
+    //             }
+
+    //         }
+
+    //     })()
+    // }, [])
+
+    async function handlePortSubmission(e) {
         e.preventDefault();
+        setSubmissionClicked(true)
         console.log("port is ", port)
+        if (!port) {
+            console.log("__PORT IS EMPTY")
+            return;
+        }
+        const token = await GET_identification();
+        console.log("Got from identificaiton token", token)
+        setToken(token);
+
+        const landlord_response = await POST_locallandlord(port, token)
+        console.log("Got from landlord response", landlord_response)
     }
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-500 via-gray-700 to-gray-800 text-gray-100 relative overflow-hidden">
-            {/* Particle Background */}
             <div className="absolute inset-0 bg-particles opacity-50"></div>
 
-            {/* Main Content */}
             <div className="relative z-10 max-w-5xl w-full bg-opacity-70 bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl p-8">
                 {landlordClicked && (
                     <div
@@ -45,29 +86,31 @@ export default function Lobby() {
                     </div>
                 )}
 
-                {/* Header Section */}
                 <div className="text-center mb-12 space-x-2">
                     <h1 className="text-4xl font-bold animate-fadeIn inline-block border-b-[8px] border-tertiary">
                         Select your role
                     </h1>
-                    {landlordClicked ? (
-                        <h1 className="text-4xl font-bold animate-fadeIn inline-block">
-                            : Landlord
-                        </h1>
-                    ) :
-                        <p className="mt-4 text-gray-300 text-lg">
-                            Whether you're looking to <b>rent a device</b> or <b>offer yours</b>, we've got you covered.
-                        </p>}
+                    {
+                        landlordClicked ? (
+                            <h1 className="text-4xl font-bold animate-fadeIn inline-block">
+                                : Landlord
+                            </h1>
+                        ) :
+                            <p className="mt-4 text-gray-300 text-lg">
+                                Whether you're looking to <b>rent a device</b> or <b>offer yours</b>, we've got you covered.
+                            </p>
+                    }
                 </div>
 
                 {/* Role Cards */}
                 {!landlordClicked ? (
                     <div className="flex gap-10 w-full">
-                        {/* Tenant Role */}
+
+                        {/* Tenant*/}
                         <div className="w-full bg-gray-800 rounded-2xl p-8 hover:shadow-[0_15px_40px_rgba(64,224,208,0.5)] transition-shadow transform hover:-translate-y-2">
                             <div className="absolute -top-12 left-1/2 transform -translate-x-1/2">
                                 <svg
-                                    className="w-20 h-20 text-teal-400 group-hover:animate-spin"
+                                    className={`w-20 h-20 text-teal-400 group-hover:animate-spin`}
                                     xmlns="http://www.w3.org/2000/svg"
                                     viewBox="0 0 24 24"
                                     fill="currentColor"
@@ -118,12 +161,27 @@ export default function Lobby() {
                         </div>
                     </div>
                 ) : (
-                    // Landlord Details Form
+                    /**
+                     * 
+                     * Landlord Details Form
+                     */
                     <div className="mt-8 text-gray-100 px-10">
 
                         <p className="text-gray-300 text-center mb-6 bg-tertiary bg-opacity-30 p-2">
-                            Please ensure the <Link target="blank" href="https://github.com/the-aether-project/the-oxidized-landlord" alt="Link to landlord code" className="font-bold border-b-4 text-primary border-tertiary">Landlord Code</Link> is installed on your device.
+                            Please ensure that <Link target="blank" href="https://github.com/the-aether-project/the-oxidized-landlord" alt="Link to landlord code" className="font-bold border-b-4 text-primary border-tertiary">Landlord Code</Link> is installed on your device.
                         </p>
+
+                        {
+                            submissionClicked &&
+                            <div className="text-gray-300 text-center  bg-tertiary bg-opacity-30 p-2">
+                                <p className="">
+                                    {token == null ? <i className={`border-b-2 font-bold  border-tertiary ${token == null ? "animate-pulse" : ""}`}>Getting token...</i> : "Please do not share this token."}
+                                </p>
+                                <p className="text-xs">
+                                    {token != null && token}
+                                </p>
+                            </div>
+                        }
 
                         <div className="flex gap-20">
 
@@ -155,8 +213,8 @@ export default function Lobby() {
                             <div className="w-1/2 pt-6 self-start">
                                 <p className="font-bold">Note:</p>
                                 <p className="text-gray-300">
-                                    Enter the port number as landlord is listening on.
-                                    If you have not changed any, let it be default and continue.
+                                    Enter the port number where landlord is listening on.
+                                    If you have not changed any on landlord, let it be default and continue.
                                 </p>
                             </div>
                         </div>
