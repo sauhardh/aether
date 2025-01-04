@@ -6,7 +6,6 @@ use rocket::fairing::{Fairing, Info, Kind};
 use rocket::http::Header;
 use rocket::serde::json::Json;
 use rocket::{Request, Response};
-use rocket_dyn_templates::Template;
 use serde::{Deserialize, Serialize};
 
 fn default_server_addr() -> String {
@@ -60,5 +59,4 @@ fn rocket() -> _ {
 
     app.mount("/", routes![all_options, server_negotiation_request])
         .attach(CORS)
-        .attach(Template::fairing())
 }
