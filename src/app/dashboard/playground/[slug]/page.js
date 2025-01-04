@@ -5,6 +5,9 @@ import { MdFullscreenExit } from "react-icons/md";
 import { LuMousePointerClick } from "react-icons/lu";
 import { useState, useEffect, useRef } from "react";
 import { WebRTC } from "@/lib/webrtc";
+import { ws_handleMouseControl, ws_disconnectConnection } from "@/lib/apiClient";
+
+
 
 export default function Page() {
     const params = useParams()
@@ -22,12 +25,18 @@ export default function Page() {
     }
 
     async function handleMousePlay() {
-        console.log("mouse clicked")
+        console.log("mouse clicked on mouse")
+        await ws_handleMouseControl()
+    }
+
+    async function handleEndCall() {
+        console.log("mouse clicked on end call")
+        await ws_disconnectConnection()
     }
 
     useEffect(() => {
         (async () => {
-            await WebRTC();
+            await WebRTC(videoRef);
         })()
     }, [])
 
@@ -44,7 +53,7 @@ export default function Page() {
                         <MdFullscreenExit className="w-full h-full" />
                     </div>
 
-                    <div className="w-[40px] h-[40px] z-1 p-2 rounded-full bg-red-900 hover:animate-pulse">
+                    <div className="w-[40px] h-[40px] z-1 p-2 rounded-full bg-red-900 hover:animate-pulse" onClick={handleEndCall}>
                         <SlCallEnd className="w-full h-full" />
                     </div>
                 </div>
