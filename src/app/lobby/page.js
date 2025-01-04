@@ -1,11 +1,9 @@
-
 "use client";
 
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
 import { ArrowRight } from "lucide-react";
-import { useEffect } from "react";
 import { GET_identification, POST_locallandlord } from "@/lib/apiClient";
 
 export default function Lobby() {
@@ -24,39 +22,10 @@ export default function Lobby() {
     function handleBack() {
         setLandlordClicked(false);
     }
-    //
-    ////JUST FOR TESTING
-    //
-    // useEffect(() => {
-    //     (async () => {
-    //         // Create WebSocket connection.
-    //         const socket = new WebSocket("http://localhost:7878/ping_pong?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJqb2huX2RvZSIsImlhdCI6MTczNTEyMTcxNCwiZXhwIjoxNzM1MTIyMzE0fQ.BJURt0cxExL4VyBCTnrCnMHQEKxGIPsfJR4dkhRRJho");
-
-    //         socket.onopen = () => {
-    //             console.log("Websocket initialized")
-    //             socket.send(JSON.stringify({ type: "ping" }))
-    //         }
-
-    //         socket.onmessage = async (event) => {
-    //             const data = JSON.parse(event.data)
-    //             console.log("Data is ", data)
-    //             switch (data.type) {
-    //                 case "pong":
-    //                     socket.send(JSON.stringify({ type: "ping" }))
-    //                     break
-    //                 case _:
-    //                     console.log("got something")
-    //             }
-
-    //         }
-
-    //     })()
-    // }, [])
-
     async function handlePortSubmission(e) {
         e.preventDefault();
         setSubmissionClicked(true)
-        console.log("port is ", port)
+        console.log("hadnlePORT submission port is ", port)
         if (!port) {
             console.log("__PORT IS EMPTY")
             return;
@@ -175,10 +144,10 @@ export default function Lobby() {
                             submissionClicked &&
                             <div className="text-gray-300 text-center  bg-tertiary bg-opacity-30 p-2">
                                 <p className="">
-                                    {token == null ? <i className={`border-b-2 font-bold  border-tertiary ${token == null ? "animate-pulse" : ""}`}>Getting token...</i> : "Please do not share this token."}
+                                    {token == null ? <i className={`border-b-2 font-bold  border-tertiary ${token == null ? "animate-pulse" : ""}`}>Getting things ready...</i> : "You are ready from this side."}
                                 </p>
-                                <p className="text-xs">
-                                    {token != null && token}
+                                <p className="text-[10px] text-primary overflow-hidden">
+                                    {token != null && token.slice(1, token.length - 50)}
                                 </p>
                             </div>
                         }

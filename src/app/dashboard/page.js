@@ -6,6 +6,7 @@ import Card from '@/components/ui/Card';
 import { Clock, MapPin } from 'lucide-react';
 import { FaMicrochip } from "react-icons/fa6";
 import path from 'path';
+import { webSocket } from '@/lib/apiClient';
 
 
 const DashboardPage = () => {
@@ -28,7 +29,6 @@ const DashboardPage = () => {
         e.preventDefault()
         setClickedMoreInfo(true)
         console.log("Clicked", e.target.closest(".EachCard"))
-
     }
 
     const systemInfo = [
@@ -121,6 +121,13 @@ const DashboardPage = () => {
         setSelectionMethod(method)
     }
 
+
+
+    useEffect(() => {
+        (async () => {
+            await webSocket()
+        })()
+    }, [])
 
 
 
