@@ -23,19 +23,17 @@ export default function Lobby() {
         setLandlordClicked(false);
     }
     async function handlePortSubmission(e) {
-        e.preventDefault();
         setSubmissionClicked(true)
-        console.log("hadnlePORT submission port is ", port)
         if (!port) {
             console.log("__PORT IS EMPTY")
             return;
         }
         const token = await GET_identification();
-        console.log("Got from identificaiton token", token)
-        setToken(token);
 
-        const landlord_response = await POST_locallandlord(port, token)
-        console.log("Got from landlord response", landlord_response)
+        if (token)
+            setToken(token);
+
+        await POST_locallandlord(port, token)
     }
 
     return (
