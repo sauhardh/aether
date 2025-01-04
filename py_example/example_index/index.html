@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Sample</title>
+    <link rel="stylesheet" href="./static/styles.css">
+</head>
+
+<body>
+    <div id="app">
+        <div id="login-section">
+            <h2>Connect to a landlord</h2>
+            <label for="landlord-select">Select a landlord:</label>
+            <select id="landlord-select"></select>
+            <button id="connect-btn">Connect</button>
+        </div>
+        <div id="webrtc-section" class="hidden">
+            <h2>WebRTC Connection</h2>
+            <video id="remote-video" autoplay></video>
+            <button id="disconnect-btn">Disconnect</button>
+        </div>
+    </div>
+    <script src="./static/script.js"></script>
+</body>
+
+</html>

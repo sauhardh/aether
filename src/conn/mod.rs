@@ -3,7 +3,7 @@ mod utils;
 pub mod ws;
 
 use std::sync::Arc;
-use tokio::sync::mpsc::Sender;
+use tokio::sync::mpsc::{Sender, UnboundedSender};
 use tokio::sync::{Notify, RwLock};
 use webrtc::api::media_engine::MIME_TYPE_H264;
 use webrtc::api::API;
@@ -26,10 +26,11 @@ use webrtc::rtp_transceiver::rtp_codec::RTCRtpCodecCapability;
 use webrtc::track::track_local::track_local_static_sample::TrackLocalStaticSample;
 use webrtc::track::track_local::TrackLocal;
 
+#[derive(Debug)]
 pub enum ConnectionStatus {
     ControlRelease(String),
     ControlTake(String),
-    Connected(String),
+    Connected(String, RTCSessionDescription),
     Disconnected(String),
 }
 
@@ -39,7 +40,7 @@ pub struct AetherPeerConnection {
     pub ntfy: Sender<()>,
 
     has_controls: bool,
-    state_sender: Sender<ConnectionStatus>,
+    state_sender: UnboundedSender<ConnectionStatus>,
 }
 
 impl AetherPeerConnection {
@@ -47,7 +48,7 @@ impl AetherPeerConnection {
         peer_connection: Arc<RTCPeerConnection>,
         uuid: String,
         ntfy: Sender<()>,
-        sender: Sender<ConnectionStatus>,
+        sender: UnboundedSender<ConnectionStatus>,
     ) -> Self {
         Self {
             peer_connection,
@@ -58,39 +59,35 @@ impl AetherPeerConnection {
         }
     }
 
-    async fn take_control(&mut self) -> anyhow::Result<()> {
+    fn take_control(&mut self) -> anyhow::Result<()> {
         self.state_sender
-            .send(ConnectionStatus::ControlTake(self.uuid.clone()))
-            .await?;
+            .send(ConnectionStatus::ControlTake(self.uuid.clone()))?;
         self.has_controls = true;
         Ok(())
     }
 
-    async fn release_control(&mut self) -> anyhow::Result<()> {
+    fn release_control(&mut self) -> anyhow::Result<()> {
         self.state_sender
-            .send(ConnectionStatus::ControlRelease(self.uuid.clone()))
-            .await?;
+            .send(ConnectionStatus::ControlRelease(self.uuid.clone()))?;
         self.has_controls = false;
         Ok(())
     }
 
     async fn disconnect(&mut self) -> anyhow::Result<()> {
         if self.has_controls {
-            self.release_control().await?
+            self.release_control()?
         }
 
         self.state_sender
-            .send(ConnectionStatus::Disconnected(self.uuid.clone()))
-            .await?;
+            .send(ConnectionStatus::Disconnected(self.uuid.clone()))?;
 
         self.ntfy.send(()).await?;
         Ok(())
     }
 
-    async fn connect(&self) -> anyhow::Result<()> {
+    fn connect(&self, answer: RTCSessionDescription) -> anyhow::Result<()> {
         self.state_sender
-            .send(ConnectionStatus::Connected(self.uuid.clone()))
-            .await?;
+            .send(ConnectionStatus::Connected(self.uuid.clone(), answer))?;
         Ok(())
     }
 }
@@ -100,7 +97,7 @@ pub struct AetherWebRTCConnectionManager {
     rtc_configuration: RTCConfiguration,
     api: API,
 
-    state_watcher: Sender<ConnectionStatus>,
+    state_watcher: UnboundedSender<ConnectionStatus>,
 
     peers: Arc<RwLock<Vec<Arc<RwLock<AetherPeerConnection>>>>>,
 }
@@ -148,7 +145,7 @@ mod peer_utils {
 }
 
 impl AetherWebRTCConnectionManager {
-    pub fn new(api: webrtc::api::API, state_watcher: Sender<ConnectionStatus>) -> Self {
+    pub fn new(api: webrtc::api::API, state_watcher: UnboundedSender<ConnectionStatus>) -> Self {
         Self {
             screen_track: RwLock::new(None).into(),
             rtc_configuration: RTCConfiguration {
@@ -158,7 +155,7 @@ impl AetherWebRTCConnectionManager {
                 }],
                 ..Default::default()
             },
-            state_watcher: state_watcher,
+            state_watcher,
             api,
             peers: RwLock::new(vec![]).into(),
         }
@@ -168,9 +165,9 @@ impl AetherWebRTCConnectionManager {
         for peer in self.peers.write().await.iter() {
             let mut peer_w = peer.write().await;
             if peer_w.uuid == uuid {
-                let _ = peer_w.take_control().await;
+                let _ = peer_w.take_control();
             } else {
-                let _ = peer_w.release_control().await;
+                let _ = peer_w.release_control();
             }
         }
     }
@@ -279,13 +276,13 @@ impl AetherWebRTCConnectionManager {
         &mut self,
         offer: RTCSessionDescription,
         uuid: String,
-    ) -> anyhow::Result<RTCSessionDescription> {
+    ) -> anyhow::Result<()> {
         let codec = utils::get_preferred_codec();
 
         let ntfy = Arc::new(Notify::new());
 
         if self.screen_track.read().await.is_none() {
-            self.set_screen_source(ntfy.clone(), codec).await
+            self.set_screen_source(ntfy.clone(), codec).await;
         }
 
         let screen_track = self
@@ -309,9 +306,25 @@ impl AetherWebRTCConnectionManager {
         let ice_nfty = ntfy.clone();
         let ice_done_tx = done_tx.clone();
 
-        associated_peer
-            .read()
-            .await
+        let auxilliary_peer_read = associated_peer.read().await;
+
+        auxilliary_peer_read
+            .peer_connection
+            .set_remote_description(offer)
+            .await?;
+
+        let answer = auxilliary_peer_read
+            .peer_connection
+            .create_answer(None)
+            .await?;
+        auxilliary_peer_read
+            .peer_connection
+            .set_local_description(answer.clone())
+            .await?;
+
+        auxilliary_peer_read.connect(answer)?;
+
+        auxilliary_peer_read
             .peer_connection
             .on_ice_connection_state_change(Box::new(
                 move |connection_state: RTCIceConnectionState| {
@@ -330,8 +343,6 @@ impl AetherWebRTCConnectionManager {
                     Box::pin(async {})
                 },
             ));
-
-        let auxilliary_peer_read = associated_peer.read().await;
 
         auxilliary_peer_read
             .peer_connection
@@ -425,7 +436,7 @@ impl AetherWebRTCConnectionManager {
                                         let _ = mouse.click(&mouse_rs::types::keys::Keys::LEFT);
                                     }
                                 } else {
-                                    let _ = inner_peer.write().await.take_control().await;
+                                    let _ = inner_peer.write().await.take_control();
                                     let mouse = mouse_rs::Mouse::new();
                                     let _ = mouse.move_to(x, y);
                                     let _ = mouse.click(&mouse_rs::types::keys::Keys::LEFT);
@@ -436,33 +447,20 @@ impl AetherWebRTCConnectionManager {
                 })
             }));
 
-        auxilliary_peer_read
-            .peer_connection
-            .set_remote_description(offer)
-            .await?;
-
-        let answer = auxilliary_peer_read
-            .peer_connection
-            .create_answer(None)
-            .await?;
         let mut gather_complete = auxilliary_peer_read
             .peer_connection
             .gathering_complete_promise()
             .await;
 
-        auxilliary_peer_read
-            .peer_connection
-            .set_local_description(answer.clone())
-            .await?;
         let _ = gather_complete.recv().await;
 
-        auxilliary_peer_read.connect().await?;
+        drop(auxilliary_peer_read);
 
         if peer_utils::fetch_peer_in_control(&self.peers)
             .await
             .is_none()
         {
-            let _ = associated_peer.write().await.take_control().await;
+            let _ = associated_peer.write().await.take_control();
         }
 
         let watching_peer = associated_peer.clone();
@@ -475,14 +473,14 @@ impl AetherWebRTCConnectionManager {
                     let mut mut_associated_peer = watching_peer.write().await;
 
                     if mut_associated_peer.has_controls {
-                        let _ = mut_associated_peer.release_control().await;
+                        let _ = mut_associated_peer.release_control();
                     }
                     let _ = mut_associated_peer.disconnect().await;
-                    peer_utils::discard_peer_by_uuid(&peer_list, mut_associated_peer.uuid.clone()).await;
+                    peer_utils::discard_peer_by_uuid(&peer_list, watching_peer.read().await.uuid.clone()).await;
                 }
             };
         });
 
-        anyhow::Ok(answer)
+        Ok(())
     }
 }

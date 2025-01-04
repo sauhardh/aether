@@ -3,11 +3,23 @@ extern crate rocket;
 mod conn;
 
 use rocket::fairing::{Fairing, Info, Kind};
-use rocket::fs::FileServer;
 use rocket::http::Header;
 use rocket::serde::json::Json;
 use rocket::{Request, Response};
-use rocket_dyn_templates::{context, Template};
+use rocket_dyn_templates::Template;
+use serde::{Deserialize, Serialize};
+
+fn default_server_addr() -> String {
+    "ws://127.0.0.1:7878".into()
+}
+
+#[derive(Serialize, Deserialize)]
+struct NegotiationOffer {
+    token: String,
+
+    #[serde(default = "default_server_addr")]
+    server_addr: String,
+}
 
 pub struct CORS;
 
@@ -32,22 +44,11 @@ impl Fairing for CORS {
 }
 
 #[post("/negotiate-server", format = "json", data = "<token>")]
-async fn server_negotiation_request(mut token: Json<serde_json::Value>) {
-    let token = token.take().as_str().unwrap().to_owned();
-    // Change this or fetch it dynamically.
-    tokio::spawn(conn::ws::start_server_connection("127.0.0.1:7878", token));
-}
-
-#[get("/")]
-async fn default_landing_page() -> Template {
-    let conf = rocket::Config::figment().extract::<rocket::Config>();
-
-    Template::render(
-        "sample",
-        context! {
-            local_port: conf.map(|conf| conf.port).unwrap_or(8000u16)
-        },
-    )
+async fn server_negotiation_request(token: Json<NegotiationOffer>) {
+    tokio::spawn(conn::ws::start_server_connection(
+        token.server_addr.clone(),
+        token.token.clone(),
+    ));
 }
 
 #[options("/<_..>")]
@@ -57,15 +58,7 @@ fn all_options() {}
 fn rocket() -> _ {
     let app = rocket::build();
 
-    app.mount(
-        "/",
-        routes![
-            default_landing_page,
-            all_options,
-            server_negotiation_request
-        ],
-    )
-    .mount("/static", FileServer::from("./static"))
-    .attach(CORS)
-    .attach(Template::fairing())
+    app.mount("/", routes![all_options, server_negotiation_request])
+        .attach(CORS)
+        .attach(Template::fairing())
 }
