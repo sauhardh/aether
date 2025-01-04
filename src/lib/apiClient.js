@@ -2,43 +2,68 @@ const ADDRESS_URL = "http://0.0.0.0:7878"
 
 const TOKEN = ""
 
+
 async function GET_Computers() {
-    const res = await fetch(`${ADDRESS_URL}/api/authorized/computers`, {
-        method: "GET",
-        headers: {
-            "Authorization": `Bearer ${TOKEN}`
+    try {
+        const res = await fetch(`${ADDRESS_URL}/api/authorized/computers`, {
+            method: "GET",
+            headers: {
+                "Authorization": `Bearer ${TOKEN}`
+            }
+        })
+        if (!res.ok) {
+            throw new Error("Could not get the computers from server")
         }
-    })
-    const result = await res.json();
-    //TODO
-    console.log("Got from computers", result);
+        const result = await res.json();
+        //TODO
+        console.log("Got from computers", result);
+
+    } catch (error) {
+        console.error('error occured at get computers', error);
+        return;
+    }
 };
 
 //It gets identification token for landlord to communicate with server
 async function GET_identification() {
-    const res = await fetch(`${ADDRESS_URL}/api/authorized/identification`, {
-        method: "GET",
-        headers: {
-            "Authorization": `Bearer ${TOKEN}`
+
+    try {
+
+        const res = await fetch(`${ADDRESS_URL}/api/authorized/identification`, {
+            method: "GET",
+            headers: {
+                "Authorization": `Bearer ${TOKEN}`
+            }
+        })
+        if (!res.ok) {
+            throw new Error("Could not get the token from server")
         }
-    })
-    const result = await res.json();
-    console.log("Got from identification", result)
-    return result.message;
+        const result = await res.json();
+        console.log("Got from identification", result)
+        return result.message;
+    } catch (error) {
+        console.error("Error occured on getting identification token", error)
+        return;
+    }
 }
 
 //It post identification token to the local landlord
 async function POST_locallandlord(PORT, token_id) {
-    console.log("port is ", PORT, token_id)
-    const res = await fetch(`http://localhost:${PORT}/negotiate-server`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            token: token_id
+    try {
+        const res = await fetch(`http://localhost:${PORT}/negotiate-server`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                token: token_id
+            })
         })
-    })
-    const result = await res.json();
-    return result;
+        if (!res.ok) {
+            throw new Error("Could not post to your landlord");
+        }
+    } catch (error) {
+        console.error("Error occured on post_landlord", error)
+        return;
+    }
 }
 
 
@@ -52,13 +77,13 @@ async function ws_WebRTCServerResponse() {
 
         socket.onmessage = function (event) {
             try {
-                const data = JSON.parse(event.data);
+                const data = JSON.parse(event?.data);
                 if (data.type === "ANSWER" && data.sdp) {
                     clearTimeout(timeout);
                     resolve(data.sdp);
                 } else if (data.type === "ERROR") {
                     clearTimeout(timeout);
-                    reject(new Error(data.message || 'WebRTC connection error'));
+                    reject(new Error(data?.message || 'WebRTC connection error'));
                 }
             } catch (error) {
                 clearTimeout(timeout);
@@ -83,7 +108,7 @@ async function ws_handleMouseControl(landlord_id = 1) {
     await socket.send(JSON.stringify({ type: "CONTROL", landlord_id }))
 }
 
-async function ws_disconnectConnection(uuid, landlord_id) {
+async function ws_disconnectConnection(uuid, landlord_id = 1) {
     await socket.send(JSON.stringify({ type: "DISCONNECT", uuid, landlord_id }))
 }
 
@@ -110,9 +135,6 @@ async function webSocket() {
                 break
             case "DEVICES":
                 console.log("Devices are ", data.devices)
-                break
-            case "ERROR":
-                console.log("ERROR IS ", data)
                 break
             case "CONTROL_ACK":
                 console.log("got control ack", data)

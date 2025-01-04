@@ -58,7 +58,7 @@ export default function Page() {
                     </div>
                 </div>
 
-                <video id="video" ref={videoRef} className="bg-black w-full h-full rounded-lg p-10" autoPlay muted>
+                <video id="video" ref={videoRef} className="bg-black w-full h-full rounded-lg" autoPlay muted>
                     Your browser does not support this player
                 </video>
             </div>
