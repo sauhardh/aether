@@ -1,7 +1,6 @@
 const ADDRESS_URL = "http://0.0.0.0:7878"
 
-const TOKEN = ""
-
+const TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJqb2huX2RvZSIsImlhdCI6MTczNjY2MzU4MCwiZXhwIjoxNzM2NjY5NTgwfQ.cstHcuRRIAltRvbZQXq7XX7CRVIKDqK9Nvtag9wMbMY"
 
 async function GET_Computers() {
     try {
@@ -134,6 +133,7 @@ async function webSocket() {
                 console.log(data.message)
                 break
             case "DEVICES":
+                console.log("hello device")
                 console.log("Devices are ", data.devices)
                 break
             case "CONTROL_ACK":
