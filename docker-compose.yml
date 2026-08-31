@@ -1,0 +1,81 @@
+services:
+  postgres:
+    image: postgres:14-alpine
+    restart: always
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+    networks:
+      - aether-net
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+    networks:
+      - aether-net
+
+  server:
+    build: ./server
+    restart: always
+    ports:
+      - "7878:7878"
+    env_file:
+      - .env
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DB_HOST=postgres # Container service name in Docker network
+      - REDIS_HOST=redis # Container service name in Docker network
+      - DB_NAME=${POSTGRES_DB}
+      - DB_USER=${POSTGRES_USER}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_PORT=5432
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - aether-net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    env_file:
+      - .env # <-- Injects GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET
+    environment:
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_SECRET=${JWT_SECRET:-secret_is_i_love_you_secretly}
+    depends_on:
+      - server
+    networks:
+      - aether-net
+
+volumes:
+  postgres_data:
+
+networks:
+  aether-net:
+    driver: bridge
