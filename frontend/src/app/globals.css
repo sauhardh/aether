@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.invertImg{
+    filter:invert(0.23)
+}
+:root {
+    --navbar-height: 64px; /* Set this to match your navbar's height */
+  }
+  .card-layout {
+    width: 352px;
+    -webkit-box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 24px;
+    border-radius: 8px;
+    margin: 0 auto;
+    background: var(--color-background-container, #f7f5f5);
+}
+  
