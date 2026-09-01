@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
 from .db import POOL_APPKEY, Base, trigger_total_cost, try_fetch_login_params_from_env
+from .redis_broker import REDIS_POOL_APPKEY, RedisBroker
 
 
 def set_windows_loop_policy():
@@ -28,12 +29,19 @@ class AetherContext:
     `aiohttp.web.Application`.
     """
 
-    def __init__(self, app: web.Application, use_database: bool = False):
+    def __init__(
+        self,
+        app: web.Application,
+        use_database: bool = False,
+        use_redis: bool = False,
+    ):
         self.app = app
         self.use_database = use_database
+        self.use_redis = use_redis
 
         self.__database_pool = None
         self.__database_engine = None
+        self.__redis_broker = None
 
         """
         landlord=[
@@ -49,6 +57,7 @@ class AetherContext:
         self.app["landlords"] = []
         self.app["landlord_specification"] = []
         self.app["clients"] = set()
+        self.app[REDIS_POOL_APPKEY] = None
 
         self.app.on_shutdown.append(lambda _: self.close())
 
@@ -56,6 +65,15 @@ class AetherContext:
         self.__http_client = aiohttp.ClientSession(
             headers={"User-Agent": "Aether/1.0 (unreleased)"}
         )
+
+    async def __setup_redis(self):
+        self.__redis_broker = RedisBroker()
+        connected = await self.__redis_broker.initialize()
+        if connected:
+            self.app[REDIS_POOL_APPKEY] = self.__redis_broker
+            print("Redis Broker initialized and connected successfully")
+        else:
+            print("Warning: Redis Broker could not connect. Falling back to in-memory mode.")
 
     async def __setup_database(self):
         self.__database_engine = create_async_engine(
@@ -87,6 +105,8 @@ class AetherContext:
         ]
         if self.use_database:
             setup_coros.append(self.__setup_database)
+        if self.use_redis:
+            setup_coros.append(self.__setup_redis)
 
         for setup_coro in setup_coros:
             await setup_coro()
@@ -101,6 +121,9 @@ class AetherContext:
         if self.__database_engine is not None:
             await self.__database_engine.dispose()
 
+        if self.__redis_broker is not None:
+            await self.__redis_broker.close()
+
 
 def set_context_for(app: web.Application, development_mode=True):
     if development_mode:
@@ -114,9 +137,12 @@ def set_context_for(app: web.Application, development_mode=True):
 
             aiohttp_debugtoolbar.setup(app, intercept_redirects=False)
     use_database = os.getenv("USE_DATABASE", "0") == "1"
+    use_redis = os.getenv("USE_REDIS", "1") != "0"
     if use_database:
         set_windows_loop_policy()
 
     app.cleanup_ctx.append(
-        lambda app: AetherContext(app, use_database=use_database).create()
+        lambda app: AetherContext(
+            app, use_database=use_database, use_redis=use_redis
+        ).create()
     )

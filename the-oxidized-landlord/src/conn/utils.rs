@@ -10,20 +10,17 @@ use webrtc::media::io::ogg_reader::OggReader;
 use webrtc::track::track_local::track_local_static_sample::TrackLocalStaticSample;
 
 pub(crate) fn get_preferred_codec() -> &'static str {
-    let linux_session_type = std::env::var("XDG_SESSION_TYPE");
-
-    if let Ok(value) = linux_session_type {
-        if value.as_str() == "wayland" {
+    if let Ok(value) = std::env::var("PREFERRED_CODEC") {
+        if value.to_lowercase() == "h264" {
             return MIME_TYPE_H264;
         }
     }
-
-    return MIME_TYPE_VP8;
+    MIME_TYPE_VP8
 }
 
 pub(crate) fn h264_player_from<T>(
     screen_track: Arc<TrackLocalStaticSample>,
-    peer_count: Arc<RwLock<Vec<T>>>,
+    _peer_count: Arc<RwLock<Vec<T>>>,
     reader: impl std::io::Read,
 ) -> impl std::future::Future<Output = ()> {
     async move {
@@ -34,15 +31,11 @@ pub(crate) fn h264_player_from<T>(
         while let Ok(nal) = h264_source.next_nal() {
             let sample = webrtc::media::Sample {
                 data: nal.data.freeze(),
-                duration: Duration::from_secs(1),
+                duration: Duration::from_millis(33),
                 ..Default::default()
             };
 
             if screen_track.write_sample(&sample).await.is_err() {
-                break;
-            }
-
-            if peer_count.read().await.len() == 0 {
                 break;
             }
 
@@ -53,15 +46,23 @@ pub(crate) fn h264_player_from<T>(
 
 pub(crate) fn ivf_player_from<T>(
     screen_track: Arc<TrackLocalStaticSample>,
-    peer_count: Arc<RwLock<Vec<T>>>,
+    _peer_count: Arc<RwLock<Vec<T>>>,
     reader: impl std::io::Read,
 ) -> impl std::future::Future<Output = ()> {
     async move {
-        let (mut ivf_source, header) = IVFReader::new(reader).unwrap();
+        let (mut ivf_source, header) = match IVFReader::new(reader) {
+            Ok(src) => src,
+            Err(e) => {
+                eprintln!("Failed to open IVF reader from ffmpeg: {}", e);
+                return;
+            }
+        };
 
         let duration = std::time::Duration::from_millis(
-            ((1000 * header.timebase_numerator) / header.timebase_denominator) as u64,
+            ((1000 * header.timebase_numerator) / header.timebase_denominator.max(1)) as u64,
         );
+
+        let mut ticker = tokio::time::interval(duration);
 
         while let Ok((frame, _)) = ivf_source.parse_next_frame() {
             let sample = webrtc::media::Sample {
@@ -74,9 +75,7 @@ pub(crate) fn ivf_player_from<T>(
                 break;
             }
 
-            if peer_count.read().await.len() == 0 {
-                break;
-            }
+            let _ = ticker.tick().await;
         }
     }
 }

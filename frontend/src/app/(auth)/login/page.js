@@ -27,11 +27,11 @@ const Login = () => {
   useEffect(() => {
     if (session) {
       if (pathname == "/login") {
-        router.push("/")
+        router.push("/lobby")
       }
       console.log("There is session", session)
     }
-  }, [session, router])
+  }, [session, router, pathname])
 
   const handleChange = (e) => {
     const { name, value } = e.target

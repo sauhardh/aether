@@ -41,28 +41,33 @@ export default function Page() {
     }, [])
 
     return (
-        <div className="w-full min-h-screen flex justify-center items-center">
-
-            <div className={`${fullScreenMode ? "inset-0 left-0 top-0 absolute" : "w-1/2 h-1/2 relative"}`}>
-                <div className="p-2 flex flex-col  gap-3 absolute text-white  top-[40%] right-0 mb-5 pb-5 ">
-                    <div className="w-[40px] h-[40px] z-1 p-2 rounded-full hover:scale-[0.9]" onClick={handleMousePlay}>
+        <div className="w-full min-h-screen flex justify-center items-center bg-gray-900 p-6">
+            <div className={`${fullScreenMode ? "fixed inset-0 z-50 w-screen h-screen bg-black" : "w-full max-w-5xl h-[75vh] relative flex justify-center items-center"}`}>
+                <div className="p-2 flex flex-col gap-3 absolute text-white top-[40%] right-4 z-20 mb-5 pb-5 bg-black/50 backdrop-blur rounded-2xl">
+                    <div className="w-[40px] h-[40px] z-1 p-2 rounded-full hover:scale-[0.9] cursor-pointer" onClick={handleMousePlay}>
                         <LuMousePointerClick className="w-full h-full" />
                     </div>
 
-                    <div className={`w-[40px] h-[40px] z-1 p-2 rounded-full ${fullScreenMode ? "hover:scale-[0.89]" : "hover:scale-[1.15]"}`} onClick={() => { toggleFullScreen() }}>
+                    <div className={`w-[40px] h-[40px] z-1 p-2 rounded-full cursor-pointer ${fullScreenMode ? "hover:scale-[0.89]" : "hover:scale-[1.15]"}`} onClick={() => { toggleFullScreen() }}>
                         <MdFullscreenExit className="w-full h-full" />
                     </div>
 
-                    <div className="w-[40px] h-[40px] z-1 p-2 rounded-full bg-red-900 hover:animate-pulse" onClick={handleEndCall}>
+                    <div className="w-[40px] h-[40px] z-1 p-2 rounded-full bg-red-900 hover:animate-pulse cursor-pointer" onClick={handleEndCall}>
                         <SlCallEnd className="w-full h-full" />
                     </div>
                 </div>
 
-                <video id="video" ref={videoRef} className="bg-black w-full h-full rounded-lg" autoPlay muted>
+                <video
+                    id="video"
+                    ref={videoRef}
+                    className="w-full h-full rounded-2xl bg-black object-contain shadow-2xl border border-gray-800"
+                    autoPlay
+                    playsInline
+                    muted
+                >
                     Your browser does not support this player
                 </video>
             </div>
-
         </div>
     )
 }

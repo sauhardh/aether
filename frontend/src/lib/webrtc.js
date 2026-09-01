@@ -12,31 +12,65 @@ async function WebRTC(videoRef) {
 
     /**
      * VideoPlayer_HandleClick
-     * This calculate the position of mouse clicked from the 'video' html tag and send it through the datachannel
+     * Calculates the normalized position (0.0 to 1.0) of mouse clicked inside the actual video frame
      */
-    const videoPlayer = videoRef?.current;
     function VideoPlayer_HandleClick(event) {
-        const rectangle = videoPlayer.getBoundingClientRect()
-        const x_ratio = (event.clientX - rectangle.left) / rectangle.width;
-        const y_ratio = (event.clientY - rectangle.top) / rectangle.height;
+        const target = videoRef?.current || videoPlayer;
+        if (!target) return;
 
-        dataChannel.send(
-            JSON.stringify({
-                type: "mouse",
-                payload: { "clicked_at": { x_ratio, y_ratio } },
-            })
-        );
-    };
+        const rect = target.getBoundingClientRect();
+        const clickX = event.clientX - rect.left;
+        const clickY = event.clientY - rect.top;
 
+        const elemWidth = rect.width;
+        const elemHeight = rect.height;
+        const videoWidth = target.videoWidth || elemWidth;
+        const videoHeight = target.videoHeight || elemHeight;
+
+        // Calculate pillarboxing / letterboxing offsets for object-contain
+        const elemRatio = elemWidth / elemHeight;
+        const videoRatio = videoWidth / videoHeight;
+
+        let renderWidth = elemWidth;
+        let renderHeight = elemHeight;
+        let offsetX = 0;
+        let offsetY = 0;
+
+        if (elemRatio > videoRatio) {
+            renderWidth = elemHeight * videoRatio;
+            offsetX = (elemWidth - renderWidth) / 2;
+        } else {
+            renderHeight = elemWidth / videoRatio;
+            offsetY = (elemHeight - renderHeight) / 2;
+        }
+
+        const normX = Math.max(0, Math.min(1, (clickX - offsetX) / renderWidth));
+        const normY = Math.max(0, Math.min(1, (clickY - offsetY) / renderHeight));
+
+        if (dataChannel && dataChannel.readyState === "open") {
+            dataChannel.send(
+                JSON.stringify({
+                    type: "mouse",
+                    payload: { "clicked_at": { x_ratio: normX, y_ratio: normY } },
+                })
+            );
+        }
+    }
 
     dataChannel.onopen = () => {
-        console.info("__Data Channel Open__")
-        videoPlayer.addEventListener("click", VideoPlayer_HandleClick)
+        console.info("__Data Channel Open__");
+        const target = videoRef?.current || videoPlayer;
+        if (target) {
+            target.addEventListener("click", VideoPlayer_HandleClick);
+        }
     };
 
-    dataChannel.onclose = (event) => {
-        console.info("__Data Channel Closed__")
-        videoPlayer.removeEventListener("click", VideoPlayer_HandleClick)
+    dataChannel.onclose = () => {
+        console.info("__Data Channel Closed__");
+        const target = videoRef?.current || videoPlayer;
+        if (target) {
+            target.removeEventListener("click", VideoPlayer_HandleClick);
+        }
     };
 
     peerConnection.oniceconnectionstatechange = () => {
@@ -48,9 +82,14 @@ async function WebRTC(videoRef) {
     }
 
     peerConnection.addEventListener("track", (event) => {
-        if (event.track.kind == 'video') {
-            videoPlayer.srcObject = event.streams[0];
-            videoPlayer.play();
+        const target = videoRef?.current || videoPlayer;
+        if (event.track.kind === 'video' && target) {
+            const stream = (event.streams && event.streams.length > 0 && event.streams[0])
+                ? event.streams[0]
+                : new MediaStream([event.track]);
+            target.srcObject = stream;
+            target.muted = true;
+            target.play().catch((err) => console.warn("Video play error:", err));
         }
     });
 

@@ -68,6 +68,9 @@ class AetherComputersView(web.View):
                 )
 
 
+from aether_server.redis_broker import REDIS_POOL_APPKEY, RedisBroker
+
+
 """
 @Private route
 /api/authorized/identication
@@ -96,13 +99,29 @@ class AetherIdentificationView(web.View):
                 user = results.scalar_one_or_none()
 
                 if not user:
-                    return web.json_response(
-                        {
-                            "ok": False,
-                            "message": "Not Found: user don't exist.",
-                        },
-                        status=404,
-                    )
+                    # Auto-provision OAuth/new user in database
+                    username = payload.get("username", f"user_{user_id}")
+                    email = payload.get("email", f"{username}@aether.local")
+                    
+                    # Check if email already exists
+                    stmt_email = select(Users).where(Users.email == email)
+                    res_email = await session.execute(stmt_email)
+                    existing_email_user = res_email.scalar_one_or_none()
+                    
+                    if existing_email_user:
+                        user = existing_email_user
+                        user_id = user.id
+                    else:
+                        user = Users(
+                            username=username,
+                            email=email,
+                            stored_credentials="oauth_authenticated",
+                            is_landlord=True,
+                        )
+                        session.add(user)
+                        await session.commit()
+                        await session.refresh(user)
+                        user_id = user.id
 
                 landlords = self.request.app["landlords"]
                 print(f"__LOG.__landlords are : {landlords}")
@@ -110,7 +129,7 @@ class AetherIdentificationView(web.View):
                 if landlords:
                     # returning if user is already active.
                     for landlord in landlords:
-                        if str(landlord["user_id"]) == user_id and landlord["active"]:
+                        if str(landlord["user_id"]) == str(user_id) and landlord["active"]:
                             return web.json_response(
                                 {
                                     "ok": False,
@@ -130,11 +149,10 @@ class AetherIdentificationView(web.View):
                                 )
                             )
                         )
-                        and jwt_manager.decode_jwt(landlord["identification"]).get(
-                            "sub"
-                        )
+                        and str(jwt_manager.decode_jwt(landlord["identification"]).get("sub"))
                         != str(landlord["user_id"])
                     ]
+                    self.request.app["landlords"] = landlords
 
                 if user.is_landlord is False:
                     user.is_landlord = True
@@ -151,6 +169,11 @@ class AetherIdentificationView(web.View):
                         "ws": None,
                     }
                 )
+
+                # If Redis broker is available, store in Redis presence registry
+                redis_broker = self.request.app.get(REDIS_POOL_APPKEY)
+                if redis_broker and redis_broker.is_connected:
+                    await redis_broker.save_pending_landlord(token=token, user_id=user_id)
 
                 print("__LOG: After appending logs", landlords)
 

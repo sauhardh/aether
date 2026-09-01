@@ -3,13 +3,15 @@
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 import { ArrowRight } from "lucide-react";
 import { GET_identification, POST_locallandlord } from "@/lib/apiClient";
 
 export default function Lobby() {
     const router = useRouter();
+    const { data: session } = useSession();
     const [landlordClicked, setLandlordClicked] = useState(false);
-    const [port, setPort] = useState(6969);
+    const [port, setPort] = useState(8000);
     const [token, setToken] = useState(null);
     const [messageToClient, setmessageToClient] = useState("");
     const [submissionClicked, setSubmissionClicked] = useState(false);
@@ -22,18 +24,34 @@ export default function Lobby() {
     function handleBack() {
         setLandlordClicked(false);
     }
+
     async function handlePortSubmission(e) {
-        setSubmissionClicked(true)
+        setSubmissionClicked(true);
+        setmessageToClient("Contacting server for identification token...");
         if (!port) {
-            console.log("__PORT IS EMPTY")
+            setmessageToClient("Please enter a port number.");
             return;
         }
-        const token = await GET_identification();
+        try {
+            const userToken = session?.accessToken || null;
+            const idToken = await GET_identification(userToken);
 
-        if (token)
-            setToken(token);
-
-        await POST_locallandlord(port, token)
+            if (idToken) {
+                setToken(idToken);
+                setmessageToClient("Token generated! Connecting to local landlord daemon...");
+                const posted = await POST_locallandlord(port, idToken);
+                if (posted) {
+                    setmessageToClient("Landlord daemon connected successfully! You are ready to stream.");
+                } else {
+                    setmessageToClient(`Token generated, but could not reach local landlord at http://localhost:${port}. Please check if 'cargo run' is active.`);
+                }
+            } else {
+                setmessageToClient("Failed to obtain identification token from server.");
+            }
+        } catch (err) {
+            console.error("Error in handlePortSubmission:", err);
+            setmessageToClient(err.message || "An error occurred.");
+        }
     }
 
     return (
@@ -140,13 +158,15 @@ export default function Lobby() {
 
                         {
                             submissionClicked &&
-                            <div className="text-gray-300 text-center  bg-tertiary bg-opacity-30 p-2">
-                                <p className="">
-                                    {token == null ? <i className={`border-b-2 font-bold  border-tertiary ${token == null ? "animate-pulse" : ""}`}>Getting things ready...</i> : "You are ready from this side."}
+                            <div className="text-gray-200 text-center bg-tertiary bg-opacity-30 p-3 rounded-lg my-4">
+                                <p className="font-medium text-sm">
+                                    {messageToClient || (token == null ? "Getting things ready..." : "You are ready from this side.")}
                                 </p>
-                                <p className="text-[10px] text-primary overflow-hidden">
-                                    {token != null && token.slice(1, token.length - 50)}
-                                </p>
+                                {token != null && (
+                                    <p className="text-[10px] text-teal-300 font-mono mt-1 overflow-hidden truncate">
+                                        Token: {token.slice(0, 30)}...
+                                    </p>
+                                )}
                             </div>
                         }
 

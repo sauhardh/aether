@@ -3,11 +3,9 @@ import React, { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, usePathname } from 'next/navigation';
 import Card from '@/components/ui/Card';
-import { Clock, MapPin } from 'lucide-react';
+import { Clock, MapPin, Monitor } from 'lucide-react';
 import { FaMicrochip } from "react-icons/fa6";
-import path from 'path';
 import { webSocket } from '@/lib/apiClient';
-
 
 const DashboardPage = () => {
     const { data: session, status } = useSession();
@@ -15,216 +13,186 @@ const DashboardPage = () => {
     const [clickedMoreInfo, setClickedMoreInfo] = useState(false);
     const [selectionMethod, setSelectionMethod] = useState("Lowest Rate");
     const [selectedInfo, setSelectedInfo] = useState(null);
+    const [systemInfo, setSystemInfo] = useState([]);
     const router = useRouter();
     const pathname = usePathname();
 
-    useEffect(() => {
-        console.log("sesison", session)
-        if (status == "authenticated") {
-            handleSelection();
+    const formatLiveDevice = (device, index) => {
+        const info = device.info || {};
+        const display = info.display || {};
+        const cpuList = info.device?.cpu || [];
+        const gpuList = info.device?.gpu || [];
+        const cpuName = cpuList[0]?.name && cpuList[0]?.name !== "<>" ? cpuList[0].name : "Host CPU";
+        const gpuName = gpuList[0]?.name && gpuList[0]?.name !== "<>" ? gpuList[0].name : "Host GPU";
+        
+        const resolution = display.width && display.height 
+            ? `${display.width}x${display.height}` 
+            : "1080p Full HD";
+
+        return {
+            id: device.landlord_id || index + 1,
+            landlord_id: device.landlord_id || index + 1,
+            rent: 100,
+            system: "Linux",
+            version: `${resolution} (${display.frame_rate || 30}fps)`,
+            machine: cpuName,
+            processor: gpuName,
+            location: info.ip_addr === "0.0.0.0" ? "Local Host" : (info.ip_addr || "Online Host")
+        };
+    };
+
+    function handleSelection(devicesList = systemInfo, type = "rate_asc") {
+        if (!devicesList || devicesList.length === 0) {
+            setSelectedInfo(null);
+            return;
         }
-    }, [status])
 
-    function handleCardClick(e) {
-        e.preventDefault()
-        setClickedMoreInfo(true)
-        console.log("Clicked", e.target.closest(".EachCard"))
-    }
-
-    const systemInfo = [
-        {
-            rent: 100,
-            system: "Windows",
-            version: "10.0.1823",
-            machine: "AMD64",
-            processor: "Intel64 Family",
-            location: "New York, USA"
-        },
-        {
-            rent: 200,
-            system: "Windows",
-            version: "10.0.1823",
-            machine: "AMD64",
-            processor: "Intel64 Family",
-            location: "Los Angeles, USA"
-        },
-        {
-            rent: 100,
-            system: "Linux",
-            version: "10.0.1823",
-            machine: "AMD64",
-            processor: "Intel64 Family",
-            location: "London, UK"
-        },
-        {
-            rent: 100,
-            system: "Windows",
-            version: "10.0.1823",
-            machine: "AMD64",
-            processor: "Intel64 Family",
-            location: "Berlin, Germany"
-        },
-        {
-            rent: 100,
-            system: "Linux",
-            version: "10.0.1823",
-            machine: "AMD64",
-            processor: "Intel64 Family",
-            location: "Tokyo, Japan"
-        },
-        {
-            rent: 100,
-            system: "Windows",
-            version: "10.0.1823",
-            machine: "AMD64",
-            processor: "Intel64 Family",
-            location: "Sydney, Australia"
-        },
-        {
-            rent: 100,
-            system: "Linux",
-            version: "10.0.1823",
-            machine: "AMD64",
-            processor: "Intel64 Family",
-            location: "Mumbai, India"
-        },
-        {
-            rent: 100,
-            system: "Linux",
-            version: "10.0.1823",
-            machine: "AMD64",
-            processor: "Intel64 Family",
-            location: "Cape Town, South Africa"
-        }
-    ];
-
-    function handleSelection(type = "rate_asc") {
-        let clonedArray = systemInfo.slice();
+        let clonedArray = devicesList.slice();
         let method = "";
         switch (type) {
             case "rate_asc":
-                clonedArray.sort((a, b) => a.rent - b.rent)[0]
-                method = "Lowest Rate"
+                clonedArray.sort((a, b) => a.rent - b.rent);
+                method = "Lowest Rate";
                 break;
             case "rate_dsc":
-                clonedArray.sort((a, b) => b.rent - a.rent)[0]
-                method = "Highest Rate"
-
+                clonedArray.sort((a, b) => b.rent - a.rent);
+                method = "Highest Rate";
                 break;
             default:
-                clonedArray.sort((a, b) => a.rent - b.rent)[0]
-                method = "Lowest Rate"
+                clonedArray.sort((a, b) => a.rent - b.rent);
+                method = "Lowest Rate";
                 break;
         }
 
-        setSelectedInfo(clonedArray[0])
-        setSelectionMethod(method)
+        setSelectedInfo(clonedArray[0]);
+        setSelectionMethod(method);
     }
 
+    function handleCardClick(e) {
+        e.preventDefault();
+        setClickedMoreInfo(true);
+    }
 
-
+    // Connect to WebSocket & receive real-time device updates from Redis
     useEffect(() => {
-        (async () => {
-            await webSocket()
-        })()
-    }, [])
-
-
-
-    return status == "loading" ? <div>Loading...</div> : (
-        <div>
-            {systemInfo.length <= 0 && <p className='italic text-gray-500 w-full  bg-tertiary bg-opacity-30 text-center mt-5 p-2 shadow-sm'>No Device is online right now. <b>Please come back later!</b></p>}
-
-
-            <div className='p-10'>
-                <div className='flex justify-between'>
-                    <h1 className='font-medium text-medium  text-primary border-b-[8px]  inline-block border-tertiary mb-5 '>Selected Device</h1>
-                    <h1 className='font-medium text-medium  text-primary border-b-[8px]  inline-block mb-5 mr-10'>{selectionMethod}</h1>
-                </div>
-
-                {!clickedMoreInfo && selectedInfo ?
-                    <div className='flex text-primary gap-5 justify-around'>
-
-                        {/* Rent */}
-                        <div className=' space-y-10   box-border w-full bg-white p-20 rounded-lg shadow-md'>
-                            <div className=' gap-1 text-green-700 text-xl'>
-                                <span className='flex'>
-                                    <p className=' font-bold text-5xl'>{selectedInfo.rent}</p>
-                                    <p className='italic text-sm self-end '>/hr</p>
-                                </span>
-                                <span className='flex space-x-2 items-baseline'>
-                                    <Clock />
-                                    <b className='text-primary text-sm '>to rent the device</b>
-                                </span>
-                            </div>
-                            <button
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    router.push(`${pathname}/playground/${session.user.name}`)
-                                }}
-                                className='border-2 py-3 px-9 rounded-lg font-medium bg-green-700 text-white hover:scale-[0.99]'
-                            >
-                                Rent now
-                            </button>
-                        </div>
-
-
-                        <div className='flex justify-around  gap-x-20 bg-white p-10 rounded-lg shadow-md w-full'>
-
-                            {/* Location */}
-                            <div className=' flex-col gap-5 text-medium font-medium  p-10  space-y-10  box-border w-fit rounded-lg self-baseline'>
-                                <span className='space-y-5'>
-                                    <MapPin width={80} height={40} />
-                                    <p>{selectedInfo.location}</p>
-                                </span>
-                            </div>
-
-                            {/* window */}
-                            <div className=' flex-col gap-5 text-medium font-medium  p-10 space-y-10  box-border w-fit'>
-                                <span className='flex gap-5'>
-                                    <p className='italic'>{selectedInfo.system}</p>
-                                    <p className='font-bold text-5xl'>{selectedInfo.version.slice(0, 2)}</p>
-                                </span>
-
-                                <span className='flex items-baseline gap-2 pl-12 '>
-                                    <FaMicrochip />
-                                    <p className='font-bold '>{selectedInfo.machine}</p>
-                                </span>
-                            </div>
-                        </div>
-
-                        {/* TODO */}
-                        <div className=' flex-col gap-5 text-medium font-medium  p-10 space-y-10 w-full box-border bg-white rounded-lg shadow-md'>
-                            <img
-                                src={"./1st_step.jpeg"}
-                                alt={"img"}
-                                className="w-full rounded-3xl border-8  border-gray-300 shadow-lg hover:shadow-inner"
-                            />
-                        </div>
-
-                    </div>
-                    :
-                    null
+        if (status === "authenticated" || session) {
+            const token = session?.accessToken || null;
+            
+            webSocket(token, (liveDevices) => {
+                if (liveDevices && Array.isArray(liveDevices) && liveDevices.length > 0) {
+                    const formatted = liveDevices.map((d, i) => formatLiveDevice(d, i));
+                    setSystemInfo(formatted);
+                    handleSelection(formatted);
+                } else {
+                    setSystemInfo([]);
+                    setSelectedInfo(null);
                 }
-            </div>
+            });
+        }
+    }, [status, session]);
+
+    return status === "loading" ? (
+        <div className="min-h-screen flex items-center justify-center text-lg text-gray-600">
+            Loading your dashboard...
+        </div>
+    ) : (
+        <div className="min-h-screen pb-16">
+            {systemInfo.length <= 0 && (
+                <div className="mx-10 mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl text-center text-blue-900 shadow-sm">
+                    <p className="font-semibold text-lg">No Live Devices Connected Right Now</p>
+                    <p className="text-sm text-blue-700 mt-1">
+                        To share your computer screen: Start your Rust agent (<code className="bg-blue-100 px-2 py-0.5 rounded">cargo run</code> in <code className="bg-blue-100 px-2 py-0.5 rounded">the-oxidized-landlord</code>) and submit port <b>8000</b> in the <b>Lobby</b>!
+                    </p>
+                </div>
+            )}
+
+            {selectedInfo && (
+                <div className='p-10'>
+                    <div className='flex justify-between'>
+                        <h1 className='font-medium text-xl text-primary border-b-[8px] inline-block border-tertiary mb-5'>
+                            Featured Live Device
+                        </h1>
+                        <h1 className='font-medium text-lg text-primary border-b-[8px] inline-block mb-5 mr-10'>
+                            {selectionMethod}
+                        </h1>
+                    </div>
+
+                    {!clickedMoreInfo && (
+                        <div className='flex flex-col lg:flex-row text-primary gap-6 justify-around'>
+                            {/* Rent Box */}
+                            <div className='space-y-6 box-border w-full lg:w-1/3 bg-white p-8 rounded-2xl shadow-md flex flex-col justify-between'>
+                                <div className='gap-1 text-green-700 text-xl'>
+                                    <span className='flex items-baseline'>
+                                        <p className='font-bold text-5xl'>${selectedInfo.rent}</p>
+                                        <p className='italic text-sm ml-1'>/hr</p>
+                                    </span>
+                                    <span className='flex space-x-2 items-center mt-2'>
+                                        <Clock className="w-4 h-4 text-gray-500" />
+                                        <b className='text-gray-600 text-sm'>Live Compute Stream</b>
+                                    </span>
+                                </div>
+                                <button
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        const userName = session?.user?.name || "guest";
+                                        router.push(`${pathname}/playground/${userName}`);
+                                    }}
+                                    className='w-full py-3 px-6 rounded-xl font-semibold bg-green-600 text-white hover:bg-green-700 active:scale-[0.98] transition-all shadow-md'
+                                >
+                                    Connect & Stream Now
+                                </button>
+                            </div>
+
+                            {/* Specs Info */}
+                            <div className='flex justify-around gap-x-10 bg-white p-8 rounded-2xl shadow-md w-full lg:w-2/3'>
+                                <div className='flex flex-col gap-3 justify-center'>
+                                    <span className='flex items-center space-x-3 text-gray-700'>
+                                        <MapPin className="w-6 h-6 text-blue-600" />
+                                        <p className="font-medium text-lg">{selectedInfo.location}</p>
+                                    </span>
+                                    <span className='flex items-center space-x-3 text-gray-700'>
+                                        <Monitor className="w-6 h-6 text-purple-600" />
+                                        <p className="font-medium">{selectedInfo.version}</p>
+                                    </span>
+                                </div>
+
+                                <div className='flex flex-col gap-3 justify-center border-l pl-8'>
+                                    <span className='flex items-center space-x-3 text-gray-700'>
+                                        <FaMicrochip className="w-6 h-6 text-teal-600" />
+                                        <p className='font-medium'>{selectedInfo.machine}</p>
+                                    </span>
+                                    <span className='text-sm text-gray-500'>
+                                        GPU: {selectedInfo.processor}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
 
             <div className='p-10'>
-
-                <div className='flex justify-between'>
-                    <h1 className='font-medium text-medium  text-primary border-b-[8px]  inline-block border-tertiary mb-5 '>Available Devices</h1>
-                    <h1 className='font-medium text-medium  text-primary border-b-[8px]  inline-block mb-5 mr-10'><b>Total:</b> {systemInfo.length}</h1>
+                <div className='flex justify-between items-center mb-6'>
+                    <h1 className='font-medium text-2xl text-primary border-b-[8px] inline-block border-tertiary'>
+                        Available Online Devices
+                    </h1>
+                    <span className='text-lg font-semibold text-gray-600 bg-white px-4 py-2 rounded-xl shadow-sm border'>
+                        Online Hosts: <b>{systemInfo.length}</b>
+                    </span>
                 </div>
 
-                <div className="flex h-full flex-wrap gap-9 ">
-
-                    {systemInfo.length > 0 &&
+                <div className="flex h-full flex-wrap gap-8">
+                    {systemInfo.length > 0 ? (
                         <Card systemInfo={systemInfo} handleCardClick={handleCardClick} />
-                    }
-
+                    ) : (
+                        <div className="w-full text-center py-16 bg-white border border-dashed border-gray-300 rounded-2xl">
+                            <p className="text-gray-500 text-lg">Waiting for host computers to publish specifications...</p>
+                        </div>
+                    )}
                 </div>
             </div>
-        </div >
+        </div>
     );
-}
+};
 
 export default DashboardPage;

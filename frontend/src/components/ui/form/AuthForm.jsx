@@ -13,7 +13,7 @@ function AuthForm({ isSignUp = false, handleSubmit, handleChange, errors, showPa
 
     const handleOAuthSignIn = (provider) => {
         signIn(provider, {
-            callbackUrl: '/dashboard'
+            callbackUrl: '/lobby'
         })
     }
 

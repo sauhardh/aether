@@ -32,7 +32,16 @@ pub async fn start_server_connection(addr: String, token: String) -> anyhow::Res
         .with_setting_engine(settings)
         .build();
 
-    let (ws_stream, _) = connect_async(&format!("{addr}/v1/landlord/ws?token={token}")).await?;
+    let ws_url_v2 = format!("{addr}/v2/landlord/ws?token={token}");
+    let ws_url_v1 = format!("{addr}/v1/landlord/ws?token={token}");
+    
+    let ws_stream = match connect_async(&ws_url_v2).await {
+        Ok((stream, _)) => stream,
+        Err(e) => {
+            eprintln!("Failed to connect to v2 Redis WebSocket ({}), falling back to v1: {}", ws_url_v2, e);
+            connect_async(&ws_url_v1).await?.0
+        }
+    };
 
     let (mut sink, mut stream) = ws_stream.split();
 

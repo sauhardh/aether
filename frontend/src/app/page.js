@@ -79,32 +79,34 @@ export default function Home() {
       </div>
 
       {/* how it works section*/}
-      <div id="learn_more" className="container mx-auto px-4 py-16 flex flex-col justify-center items-center bg-secondary">
-
-        <h2 className={`text-3xl font-bold text-center mb-12 ${alfa_slab.className} text-white border-b-[12px]  inline-block border-tertiary `}>How It Works</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3  gap-x-20">
-
-          {
-            how_it_works_data.map(each => (
-              <div
-                key={each.id}
-                className="flex flex-col  justify-between">
-                <div className="relative w-96 shadow-md">
-                  <img
-                    src={each.src}
-                    alt={each.title}
-                    className="w-full rounded-3xl border-8  border-gray-300 shadow-lg hover:shadow-inner"
-                  />
-                  <div className="absolute -top-4 -left-4 w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white text-xl font-bold shadow-inner">
-                    {each.id}
+      <div id="learn_more" className="w-full bg-secondary py-16">
+        <div className="container mx-auto px-4 flex flex-col justify-center items-center">
+          <h2 className={`text-3xl font-bold text-center mb-12 ${alfa_slab.className} text-white border-b-[12px] inline-block border-tertiary`}>
+            How It Works
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12 w-full max-w-6xl justify-items-center">
+            {
+              how_it_works_data.map(each => (
+                <div
+                  key={each.id}
+                  className="flex flex-col items-center justify-between w-full max-w-sm">
+                  <div className="relative w-full max-w-[320px] sm:max-w-[360px] shadow-md">
+                    <img
+                      src={each.src}
+                      alt={each.title}
+                      className="w-full h-auto object-cover rounded-3xl border-4 sm:border-8 border-gray-300 shadow-lg hover:shadow-inner"
+                    />
+                    <div className="absolute -top-3 -left-3 sm:-top-4 sm:-left-4 w-10 h-10 sm:w-12 sm:h-12 bg-primary rounded-full flex items-center justify-center text-white text-lg sm:text-xl font-bold shadow-inner">
+                      {each.id}
+                    </div>
                   </div>
+                  <h3 className={`text-xl sm:text-2xl font-semibold text-center text-gray-300 w-full pt-6 pb-2`}>
+                    {each.title}
+                  </h3>
                 </div>
-                <h3 className={`text-2xl font-semibold text-center  text-gray-300 w-full p-7  self-start `}>{each.title}</h3>
-              </div>
-
-            ))
-          }
-
+              ))
+            }
+          </div>
         </div>
       </div>
       {/* Features Section */}

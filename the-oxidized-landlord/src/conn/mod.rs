@@ -228,6 +228,7 @@ impl AetherWebRTCConnectionManager {
         let screen_track = Arc::new(TrackLocalStaticSample::new(
             RTCRtpCodecCapability {
                 mime_type: codec.into(),
+                clock_rate: 90000,
                 ..Default::default()
             },
             "video".to_owned(),
@@ -246,19 +247,36 @@ impl AetherWebRTCConnectionManager {
         tokio::spawn(async move {
             notifier.notified().await;
 
-            let mut ffmpeg_process = std::process::Command::new("ffmpeg")
-                .args(ffmpeg::get_ffmpeg_command())
-                .stdout(std::process::Stdio::piped())
-                .stderr(std::process::Stdio::null())
-                .spawn()
-                .expect("Unable to open ffmpeg, is it even in PATH?");
+            let is_wayland = ffmpeg::is_wayland();
+
+            let mut ffmpeg_process = if is_wayland {
+                let cmd_args = ffmpeg::get_wayland_ffmpeg_command(codec);
+                let cmd_str = format!(
+                    "while true; do grim -c -t ppm - 2>/dev/null; done | ffmpeg {}",
+                    cmd_args.join(" ")
+                );
+                std::process::Command::new("sh")
+                    .arg("-c")
+                    .arg(cmd_str)
+                    .stdout(std::process::Stdio::piped())
+                    .stderr(std::process::Stdio::inherit())
+                    .spawn()
+                    .expect("Unable to open Wayland screen capture pipeline (grim + ffmpeg)")
+            } else {
+                std::process::Command::new("ffmpeg")
+                    .args(ffmpeg::get_ffmpeg_command(codec))
+                    .stdout(std::process::Stdio::piped())
+                    .stderr(std::process::Stdio::inherit())
+                    .spawn()
+                    .expect("Unable to open ffmpeg, is it even in PATH?")
+            };
 
             let reader = ffmpeg_process
                 .stdout
                 .take()
                 .expect("Unable to access stdout, is it piped properly?");
 
-            info!("Creating '{codec}' source for screen tracks.");
+            info!("Creating '{codec}' source for screen tracks (Wayland = {is_wayland}).");
 
             if codec == MIME_TYPE_H264 {
                 utils::h264_player_from(screen_track, peers_copy, reader).await;
@@ -319,10 +337,8 @@ impl AetherWebRTCConnectionManager {
             .await?;
         auxilliary_peer_read
             .peer_connection
-            .set_local_description(answer.clone())
+            .set_local_description(answer)
             .await?;
-
-        auxilliary_peer_read.connect(answer)?;
 
         auxilliary_peer_read
             .peer_connection
@@ -391,18 +407,13 @@ impl AetherWebRTCConnectionManager {
                                 if let Ok(message) =
                                     serde_json::from_slice::<serde_json::Value>(&msg.data.to_vec())
                                 {
-                                    let (window_width, window_height) = (1920usize, 1080usize);
-
                                     let clicked_at = &message["payload"]["clicked_at"];
 
                                     if let (Some(x), Some(y)) = (
                                         clicked_at["x_ratio"].as_f64(),
                                         clicked_at["y_ratio"].as_f64(),
                                     ) {
-                                        expected_mouse_ctrl.replace((
-                                            (window_width as f64 * x) as i32,
-                                            (window_height as f64 * y) as i32,
-                                        ));
+                                        expected_mouse_ctrl.replace((x, y));
                                     } else {
                                         error!(
                                             "Unable to resolve click position from: {:?}",
@@ -426,20 +437,16 @@ impl AetherWebRTCConnectionManager {
                         let peer_list_copy = peer_list_copy.clone();
 
                         Box::pin(async move {
-                            if let Some((x, y)) = expected_mouse_ctrl {
+                            if let Some((x_ratio, y_ratio)) = expected_mouse_ctrl {
                                 if let Some(ctrl) =
                                     peer_utils::fetch_peer_in_control(&peer_list_copy).await
                                 {
                                     if ctrl.read().await.uuid == inner_peer.read().await.uuid {
-                                        let mouse = mouse_rs::Mouse::new();
-                                        let _ = mouse.move_to(x, y);
-                                        let _ = mouse.click(&mouse_rs::types::keys::Keys::LEFT);
+                                        perform_mouse_click(x_ratio, y_ratio);
                                     }
                                 } else {
                                     let _ = inner_peer.write().await.take_control();
-                                    let mouse = mouse_rs::Mouse::new();
-                                    let _ = mouse.move_to(x, y);
-                                    let _ = mouse.click(&mouse_rs::types::keys::Keys::LEFT);
+                                    perform_mouse_click(x_ratio, y_ratio);
                                 }
                             }
                         })
@@ -453,6 +460,10 @@ impl AetherWebRTCConnectionManager {
             .await;
 
         let _ = gather_complete.recv().await;
+
+        if let Some(local_desc) = auxilliary_peer_read.peer_connection.local_description().await {
+            auxilliary_peer_read.connect(local_desc)?;
+        }
 
         drop(auxilliary_peer_read);
 
@@ -483,4 +494,36 @@ impl AetherWebRTCConnectionManager {
 
         Ok(())
     }
+}
+
+fn perform_mouse_click(x_ratio: f64, y_ratio: f64) {
+    if ffmpeg::is_wayland() {
+        // Query monitor resolution or default to (1280, 720) for 1.5x scaled 1080p
+        let (log_w, log_h) = (1280.0, 720.0);
+        let lx = (log_w * x_ratio) as i32;
+        let ly = (log_h * y_ratio) as i32;
+
+        let _ = std::process::Command::new("hyprctl")
+            .args(["dispatch", "movecursor", &lx.to_string(), &ly.to_string()])
+            .output();
+
+        let _ = std::process::Command::new("hyprctl")
+            .args(["dispatch", "mouse", "1"])
+            .output();
+
+        let _ = std::process::Command::new("xdotool")
+            .args([
+                "mousemove",
+                &((1920.0 * x_ratio) as i32).to_string(),
+                &((1080.0 * y_ratio) as i32).to_string(),
+                "click",
+                "1",
+            ])
+            .output();
+    }
+
+    let mouse = mouse_rs::Mouse::new();
+    let (px, py) = ((1920.0 * x_ratio) as i32, (1080.0 * y_ratio) as i32);
+    let _ = mouse.move_to(px, py);
+    let _ = mouse.click(&mouse_rs::types::keys::Keys::LEFT);
 }

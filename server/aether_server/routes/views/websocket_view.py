@@ -49,10 +49,19 @@ class LandlordManager:
                 }
             )
 
-    async def specification(self, data, landlords_specs, clients):
+    async def specification(self, data, landlords_specs, clients, redis_broker=None):
+        landlord_id = self.__Ilandlord["user_id"]
+        # Remove any existing spec entry for this landlord to avoid duplicates
+        landlords_specs[:] = [s for s in landlords_specs if s.get("landlord_id") != landlord_id]
         landlords_specs.append(
-            {"landlord_id": self.__Ilandlord["user_id"], "info": data}
+            {"landlord_id": landlord_id, "info": data}
         )
+
+        # Sync to Redis if available
+        if redis_broker and redis_broker.is_connected:
+            await redis_broker.register_landlord_specs(landlord_id, data)
+            await redis_broker.broadcast_specs_update()
+
         dead_clients = set()
 
         # Sending all the specs details to all the active clients to be able to showcase in dashboard(frontend)
@@ -106,13 +115,26 @@ class AetherLandlordCommunicate(web.View):
             )
         landlords = self.request.app["landlords"]
 
-        # landlord should be on server memory when requesting identification token(more: crud_view.py)
+        # landlord should be on server memory or Redis when requesting identification token
         selected_landlord = next(
             (landlord for landlord in landlords if landlord["identification"] == token),
             None,
         )
 
-        # error when token does not match any landlords in server memory
+        # Check Redis if not in local memory
+        redis_broker = self.request.app.get(REDIS_POOL_APPKEY)
+        if selected_landlord is None and redis_broker and redis_broker.is_connected:
+            pending_user_id = await redis_broker.get_pending_landlord(token)
+            if pending_user_id is not None:
+                selected_landlord = {
+                    "user_id": pending_user_id,
+                    "identification": token,
+                    "active": False,
+                    "ws": None,
+                }
+                landlords.append(selected_landlord)
+
+        # error when token does not match any landlords
         if selected_landlord is None:
             return web.json_response(
                 {
@@ -126,6 +148,7 @@ class AetherLandlordCommunicate(web.View):
         await ws.prepare(self.request)
 
         selected_landlord["ws"] = ws
+        selected_landlord["active"] = True
         landlord_manager = LandlordManager(ws, selected_landlord)
 
         try:
@@ -148,6 +171,7 @@ class AetherLandlordCommunicate(web.View):
                             data.get("message"),
                             self.request.app["landlord_specification"],
                             self.request.app["clients"],
+                            redis_broker=redis_broker,
                         )
 
                     case "CONTROL_RELEASED":
@@ -334,6 +358,17 @@ class AetherClientWebSocketView(web.View):
         await ws.send_json(
             {"type": "WS_CONNECTION", "message": "Connection established"}
         )
+
+        # Send existing online devices immediately upon client connection
+        redis_broker = self.request.app.get(REDIS_POOL_APPKEY)
+        initial_devices = []
+        if redis_broker and redis_broker.is_connected:
+            initial_devices = await redis_broker.get_all_specifications()
+        if not initial_devices:
+            initial_devices = self.request.app.get("landlord_specification", [])
+
+        if initial_devices:
+            await ws.send_json({"type": "DEVICES", "devices": initial_devices})
 
         try:
             async for msg in ws:

@@ -1,19 +1,33 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { signIn } from 'next-auth/react'
+import { signIn, useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { FaEye, FaEyeSlash } from 'react-icons/fa'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import InputBox from '@/components/ui/form/Input'
 import AuthForm from '@/components/ui/form/AuthForm'
 import "@/app/globals.css"
 
+const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:7878'
+
 const Signup = () => {
+  const router = useRouter()
+  const pathname = usePathname()
+  const { data: session } = useSession()
 
   useEffect(() => {
     document.title = 'SignUp • Aether'
   }, [])
-  const router = useRouter()
+
+  // Auto-redirect if already authenticated (e.g. after GitHub signup)
+  useEffect(() => {
+    if (session) {
+      if (pathname === "/signup") {
+        router.push("/lobby")
+      }
+    }
+  }, [session, router, pathname])
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -82,8 +96,36 @@ const Signup = () => {
 
     setIsLoading(true)
     try {
-      // Add your signup API call here
-      router.push('/login')
+      const username = `${formData.firstName.trim()}_${formData.lastName.trim()}`
+      const res = await fetch(`${SERVER_URL}/api/authenticate-user/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: username,
+          email: formData.email,
+          password: formData.password,
+        }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok || !data.ok) {
+        setErrors({ auth: data.message || 'Signup failed' })
+        return
+      }
+
+      // Automatically sign in upon successful signup
+      const result = await signIn('credentials', {
+        redirect: false,
+        email: formData.email,
+        password: formData.password,
+      })
+
+      if (result?.error) {
+        router.push('/login')
+      } else {
+        router.push('/lobby')
+      }
     } catch (error) {
       setErrors({ auth: 'Something went wrong. Please try again.' })
     } finally {
