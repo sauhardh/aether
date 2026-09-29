@@ -461,7 +461,11 @@ impl AetherWebRTCConnectionManager {
 
         let _ = gather_complete.recv().await;
 
-        if let Some(local_desc) = auxilliary_peer_read.peer_connection.local_description().await {
+        if let Some(local_desc) = auxilliary_peer_read
+            .peer_connection
+            .local_description()
+            .await
+        {
             auxilliary_peer_read.connect(local_desc)?;
         }
 
